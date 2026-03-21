@@ -54,7 +54,9 @@ function Framework:Initialize()
     local Lib = G.UniversalShooter.Load("core/ui_lib")
     G.UniversalShooter.UIWindow = Lib:CreateWindow("UNIVERSAL MODULAR")
     
-    G.UniversalShooter.Load("core/config")
+    local Config = G.UniversalShooter.Load("core/config")
+    if Config then Config:Load() end
+    
     local Bypass = G.UniversalShooter.Load("core/bypass")
     if Bypass then Bypass:Initialize() end
     

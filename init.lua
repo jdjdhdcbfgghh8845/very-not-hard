@@ -31,12 +31,20 @@ local function loadModule(path)
     
     -- Fallback to Remote
     if not source then
-        local success, content = pcall(game.HttpGet, game, BASE_URL .. path .. ".lua")
+        local url = BASE_URL .. path .. ".lua"
+        print("[LOADER] 🌐 Fetching: " .. url)
+        
+        local success, content = pcall(game.HttpGet, game, url)
         if success then
+            -- Double check for 404 (GitHub returns a text/html error page)
+            if content:find("<!DOCTYPE html>") or content:find("404: Not Found") then
+                 warn("[LOADER] ❌ 404 Not Found at: " .. url)
+                 return nil
+            end
             source = content
-            print("[LOADER] 🌐 Loaded remote module: " .. path)
+            print("[LOADER] ✅ Loaded remote module: " .. path)
         else
-            warn("[LOADER] ❌ Failed to load module: " .. path .. " | Error: " .. tostring(content))
+            warn("[LOADER] ❌ HTTP Error in " .. path .. ": " .. tostring(content))
             return nil
         end
     end
