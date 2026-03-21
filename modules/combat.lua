@@ -3,7 +3,7 @@
 
 local Module = {
     Name = "Combat",
-    Icon = "rbxassetid://10709761143" -- Sword/Combat Icon
+    Icon = "rbxassetid://10709761143" -- Target/Aim Icon
 }
 
 function Module.Init()

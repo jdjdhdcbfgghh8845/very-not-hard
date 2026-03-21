@@ -35,86 +35,128 @@ local GlobalBlur = createBlur()
 -- [[ UI INITIALIZATION ]]
 function UI.Init()
     local MainGui = Instance.new("ScreenGui")
-    MainGui.Name = "Nexus_Vitreous"
+    MainGui.Name = "Nexus_Elite"
     MainGui.IgnoreGuiInset = true
     MainGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
-    -- Main Container (Glow Layer)
+    -- Main Container (Outer Glow)
     local GlowFrame = Instance.new("ImageLabel")
     GlowFrame.Name = "GlowFrame"
-    GlowFrame.Size = UI.Config.WindowSize + UDim2.new(0, 40, 0, 40)
-    GlowFrame.Position = UDim2.new(0.5, -370, 0.5, -245)
+    GlowFrame.Size = UI.Config.WindowSize + UDim2.new(0, 50, 0, 50)
+    GlowFrame.Position = UDim2.new(0.5, -375, 0.5, -250)
     GlowFrame.BackgroundTransparency = 1
-    GlowFrame.Image = "rbxassetid://6015667352" -- Soft shadow asset
-    GlowFrame.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    GlowFrame.ImageTransparency = 0.4
+    GlowFrame.Image = "rbxassetid://6014264734" -- High-quality glow asset
+    GlowFrame.ImageColor3 = UI.Config.AccentColor
+    GlowFrame.ImageTransparency = 0.7
     GlowFrame.Parent = MainGui
     
-    -- Main Frame (The Glass)
+    -- Main Frame (The Elite Glass)
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
     MainFrame.Size = UI.Config.WindowSize
     MainFrame.Position = UDim2.new(0.5, -350, 0.5, -225)
     MainFrame.BackgroundColor3 = UI.Config.BgColor
-    MainFrame.BackgroundTransparency = UI.Config.GlassTransparency
+    MainFrame.BackgroundTransparency = 0.15 -- Darker, more glass feel
     MainFrame.ClipsDescendants = true
     MainFrame.Parent = MainGui
     UI.MainFrame = MainFrame
     
     local MainCorner = Instance.new("UICorner")
-    MainCorner.CornerRadius = UDim.new(0, 16)
+    MainCorner.CornerRadius = UDim.new(0, 14)
     MainCorner.Parent = MainFrame
     
-    -- Gloss Overlay (Reflection)
-    local Gloss = Instance.new("Frame")
-    Gloss.Name = "Gloss"
-    Gloss.Size = UDim2.new(2, 0, 2, 0)
-    Gloss.Position = UDim2.new(-1, 0, -1, 0)
-    Gloss.BackgroundTransparency = 0.95
-    Gloss.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Gloss.Rotation = 45
-    Gloss.Parent = MainFrame
+    -- [[ TOP HEADER ]]
+    local Header = Instance.new("Frame")
+    Header.Name = "Header"
+    Header.Size = UDim2.new(1, 0, 0, 45)
+    Header.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    Header.BackgroundTransparency = 0.4
+    Header.BorderSizePixel = 0
+    Header.Parent = MainFrame
     
-    local GlossGradient = Instance.new("UIGradient")
-    GlossGradient.Transparency = NumberSequence.new({
+    local HeaderLine = Instance.new("Frame")
+    HeaderLine.Size = UDim2.new(1, 0, 0, 1)
+    HeaderLine.Position = UDim2.new(0, 0, 1, 0)
+    HeaderLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    HeaderLine.BackgroundTransparency = 0.9
+    HeaderLine.BorderSizePixel = 0
+    HeaderLine.Parent = Header
+    
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Size = UDim2.new(0, 150, 1, 0)
+    TitleLabel.Position = UDim2.new(0, 20, 0, 0)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Text = "NEXUS"
+    TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TitleLabel.Font = Enum.Font.GothamBlack
+    TitleLabel.TextSize = 18
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.Parent = Header
+    
+    local VersionLabel = Instance.new("TextLabel")
+    VersionLabel.Size = UDim2.new(0, 100, 1, 0)
+    VersionLabel.Position = UDim2.new(0, 95, 0, 2)
+    VersionLabel.BackgroundTransparency = 1
+    VersionLabel.Text = "[ V" .. _G.Nexus.Version .. " ]"
+    VersionLabel.TextColor3 = UI.Config.AccentColor
+    VersionLabel.Font = Enum.Font.GothamBold
+    VersionLabel.TextSize = 10
+    VersionLabel.TextXAlignment = Enum.TextXAlignment.Left
+    VersionLabel.Parent = Header
+    
+    -- [[ LIGHT SWEEP EFFECT ]]
+    local Sweep = Instance.new("Frame")
+    Sweep.Name = "Sweep"
+    Sweep.Size = UDim2.new(0.4, 0, 2, 0)
+    Sweep.Position = UDim2.new(-1.5, 0, -0.5, 0)
+    Sweep.BackgroundTransparency = 0.9
+    Sweep.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Sweep.Rotation = 35
+    Sweep.Parent = MainFrame
+    
+    local SweepGradient = Instance.new("UIGradient")
+    SweepGradient.Transparency = NumberSequence.new({
         NumberSequenceKeypoint.new(0, 1),
-        NumberSequenceKeypoint.new(0.5, 0),
+        NumberSequenceKeypoint.new(0.5, 0.6),
         NumberSequenceKeypoint.new(1, 1)
     })
-    GlossGradient.Parent = Gloss
+    SweepGradient.Parent = Sweep
+    
+    task.spawn(function()
+        while true do
+            Sweep.Position = UDim2.new(-1.5, 0, -0.5, 0)
+            local t = TweenService:Create(Sweep, TweenInfo.new(4, Enum.EasingStyle.Linear), {Position = UDim2.new(2, 0, -0.5, 0)})
+            t:Play()
+            t.Completed:Wait()
+            task.wait(2)
+        end
+    end)
     
     local MainStroke = Instance.new("UIStroke")
     MainStroke.Color = Color3.fromRGB(255, 255, 255)
-    MainStroke.Thickness = 1.2
+    MainStroke.Thickness = 1
     MainStroke.Transparency = 0.8
     MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     MainStroke.Parent = MainFrame
     
-    local StrokeGradient = Instance.new("UIGradient")
-    StrokeGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 100, 100)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 100, 100))
-    })
-    StrokeGradient.Parent = MainStroke
-    
     -- Sub-containers
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
-    Sidebar.Size = UDim2.new(0, UI.Config.SidebarWidth, 1, 0)
+    Sidebar.Size = UDim2.new(0, UI.Config.SidebarWidth, 1, -45)
+    Sidebar.Position = UDim2.new(0, 0, 0, 45)
     Sidebar.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
-    Sidebar.BackgroundTransparency = 0.6
+    Sidebar.BackgroundTransparency = 0.7
     Sidebar.BorderSizePixel = 0
     Sidebar.Parent = MainFrame
     UI.Sidebar = Sidebar
     
-    local SidebarLine = Instance.new("Frame")
-    SidebarLine.Size = UDim2.new(0, 1, 1, 0)
-    SidebarLine.Position = UDim2.new(1, 0, 0, 0)
-    SidebarLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    SidebarLine.BackgroundTransparency = 0.9
-    SidebarLine.BorderSizePixel = 0
-    SidebarLine.Parent = Sidebar
+    local ContentArea = Instance.new("Frame")
+    ContentArea.Name = "ContentArea"
+    ContentArea.Size = UDim2.new(1, -UI.Config.SidebarWidth, 1, -45)
+    ContentArea.Position = UDim2.new(0, UI.Config.SidebarWidth, 0, 45)
+    ContentArea.BackgroundTransparency = 1
+    ContentArea.Parent = MainFrame
+    UI.ContentArea = ContentArea
     
     local ContentArea = Instance.new("Frame")
     ContentArea.Name = "ContentArea"
@@ -127,20 +169,54 @@ function UI.Init()
     -- Overlay for settings (Context Menu)
     local Overlay = Instance.new("Frame")
     Overlay.Name = "Overlay"
-    Overlay.Size = UDim2.new(0.4, 0, 1, 0)
-    Overlay.Position = UDim2.new(1, 0, 0, 0) -- Hidden by default
-    Overlay.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-    Overlay.BackgroundTransparency = 0.2
+    Overlay.Size = UDim2.new(0, 280, 1, 0) -- Fixed width for precision
+    Overlay.Position = UDim2.new(1, 0, 0, 0) -- Hidden
+    Overlay.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+    Overlay.BackgroundTransparency = 0.05 -- Very sharp glass
     Overlay.BorderSizePixel = 0
     Overlay.ZIndex = 10
     Overlay.Parent = MainFrame
     UI.Overlay = Overlay
     
-    local OverlayStroke = Instance.new("UIStroke")
-    OverlayStroke.Color = UI.Config.AccentColor
-    OverlayStroke.Thickness = 1
-    OverlayStroke.Transparency = 0.6
-    OverlayStroke.Parent = Overlay
+    local OverlayLine = Instance.new("Frame")
+    OverlayLine.Size = UDim2.new(0, 1, 1, 0)
+    OverlayLine.BackgroundColor3 = UI.Config.AccentColor
+    OverlayLine.BackgroundTransparency = 0.5
+    OverlayLine.BorderSizePixel = 0
+    OverlayLine.Parent = Overlay
+    
+    local OverlayHeader = Instance.new("Frame")
+    OverlayHeader.Size = UDim2.new(1, 0, 0, 45)
+    OverlayHeader.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    OverlayHeader.BackgroundTransparency = 0.4
+    OverlayHeader.Parent = Overlay
+    
+    local OverlayTitle = Instance.new("TextLabel")
+    OverlayTitle.Name = "OverlayTitle"
+    OverlayTitle.Size = UDim2.new(1, -60, 1, 0)
+    OverlayTitle.Position = UDim2.new(0, 20, 0, 0)
+    OverlayTitle.BackgroundTransparency = 1
+    OverlayTitle.Text = "SETTINGS"
+    OverlayTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    OverlayTitle.Font = Enum.Font.GothamBlack
+    OverlayTitle.TextSize = 13
+    OverlayTitle.TextXAlignment = Enum.TextXAlignment.Left
+    OverlayTitle.Parent = OverlayHeader
+    UI.Overlay.OverlayTitle = OverlayTitle
+    
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+    CloseBtn.Position = UDim2.new(1, -40, 0.5, -15)
+    CloseBtn.BackgroundTransparency = 1
+    CloseBtn.Text = "✕"
+    CloseBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+    CloseBtn.Font = Enum.Font.GothamBold
+    CloseBtn.TextSize = 18
+    CloseBtn.Parent = OverlayHeader
+    
+    CloseBtn.MouseButton1Click:Connect(function()
+        TweenService:Create(Overlay, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, 0, 0, 0)}):Play()
+    end)
     
     -- Dragging Support
     local dragging, dragInput, dragStart, startPos
@@ -221,8 +297,8 @@ function UI:CreatePage(name, icon)
     page.Container.Parent = UI.ContentArea
     
     local layout = Instance.new("UIGridLayout")
-    layout.CellSize = UDim2.new(0, 185, 0, 130)
-    layout.CellPadding = UDim2.new(0, 15, 0, 15)
+    layout.CellSize = UDim2.new(0, 172, 0, 115) -- Denser layout
+    layout.CellPadding = UDim2.new(0, 12, 0, 12)
     layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     layout.SortOrder = Enum.SortOrder.LayoutOrder
     layout.Parent = page.Container
@@ -232,10 +308,10 @@ function UI:CreatePage(name, icon)
     -- [[ SIDEBAR BUTTON ]]
     local btn = Instance.new("TextButton")
     btn.Name = name .. "Btn"
-    btn.Size = UDim2.new(0, 42, 0, 42)
-    btn.Position = UDim2.new(0.5, -21, 0, 25 + (UI:GetPageCount() * 55))
-    btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    btn.BackgroundTransparency = 1
+    btn.Size = UDim2.new(0, 38, 0, 38)
+    btn.Position = UDim2.new(0.5, -19, 0, 20 + (UI:GetPageCount() * 50))
+    btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    btn.BackgroundTransparency = 0.5
     btn.Text = ""
     btn.Parent = UI.Sidebar
     
@@ -243,17 +319,23 @@ function UI:CreatePage(name, icon)
     btnCorner.CornerRadius = UDim.new(0, 10)
     btnCorner.Parent = btn
     
+    local btnStroke = Instance.new("UIStroke")
+    btnStroke.Color = Color3.fromRGB(255, 255, 255)
+    btnStroke.Thickness = 1
+    btnStroke.Transparency = 0.9
+    btnStroke.Parent = btn
+    
     local btnIco = Instance.new("ImageLabel")
-    btnIco.Name = "ImageLabel" -- Added Name for easy lookup in click handler
-    btnIco.Size = UDim2.new(0, 22, 0, 22)
-    btnIco.Position = UDim2.new(0.5, -11, 0.5, -11)
+    btnIco.Name = "ImageLabel"
+    btnIco.Size = UDim2.new(0, 20, 0, 20)
+    btnIco.Position = UDim2.new(0.5, -10, 0.5, -10)
     btnIco.Image = icon or ""
     btnIco.BackgroundTransparency = 1
-    btnIco.ImageColor3 = Color3.fromRGB(150, 150, 150)
+    btnIco.ImageColor3 = Color3.fromRGB(120, 120, 120)
     btnIco.Parent = btn
     
     local btnIndicator = Instance.new("Frame")
-    btnIndicator.Name = "Frame" -- Added Name for easy lookup in click handler
+    btnIndicator.Name = "Frame"
     btnIndicator.Size = UDim2.new(0, 2, 0, 0)
     btnIndicator.Position = UDim2.new(1, 8, 0.5, 0)
     btnIndicator.BackgroundColor3 = UI.Config.AccentColor
@@ -262,34 +344,42 @@ function UI:CreatePage(name, icon)
     
     btn.MouseButton1Click:Connect(function()
         UI:SwitchPage(name)
-        -- Reset all buttons
         for _, otherBtn in pairs(UI.Sidebar:GetChildren()) do
             if otherBtn:IsA("TextButton") then
-                TweenService:Create(otherBtn.ImageLabel, TweenInfo.new(0.3), {ImageColor3 = Color3.fromRGB(150, 150, 150)}):Play()
+                TweenService:Create(otherBtn.ImageLabel, TweenInfo.new(0.3), {ImageColor3 = Color3.fromRGB(120, 120, 120)}):Play()
                 TweenService:Create(otherBtn.Frame, TweenInfo.new(0.3), {Size = UDim2.new(0, 2, 0, 0), Position = UDim2.new(1, 8, 0.5, 0)}):Play()
+                TweenService:Create(otherBtn.UIStroke, TweenInfo.new(0.3), {Transparency = 0.9}):Play()
             end
         end
-        -- Highlight current
         TweenService:Create(btnIco, TweenInfo.new(0.3), {ImageColor3 = UI.Config.AccentColor}):Play()
-        TweenService:Create(btnIndicator, TweenInfo.new(0.3), {Size = UDim2.new(0, 2, 0, 20), Position = UDim2.new(1, 8, 0.5, -10)}):Play()
+        TweenService:Create(btnIndicator, TweenInfo.new(0.3), {Size = UDim2.new(0, 2, 0, 16), Position = UDim2.new(1, 8, 0.5, -8)}):Play()
+        TweenService:Create(btnStroke, TweenInfo.new(0.3), {Transparency = 0.6}):Play()
     end)
     
     -- [[ FEATURE TILE API ]]
     function page:AddFeatureTile(title, f_icon, default, f_callback)
         local tile = Instance.new("Frame")
         tile.Name = title .. "Tile"
-        tile.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        tile.BackgroundTransparency = 0.7
+        tile.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        tile.BackgroundTransparency = 0.5
         tile.Parent = page.Container
         
         local t_corner = Instance.new("UICorner")
-        t_corner.CornerRadius = UDim.new(0, 14)
+        t_corner.CornerRadius = UDim.new(0, 12)
         t_corner.Parent = tile
+        
+        local t_gradient = Instance.new("UIGradient")
+        t_gradient.Rotation = 90
+        t_gradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))
+        })
+        t_gradient.Parent = tile
         
         local t_stroke = Instance.new("UIStroke")
         t_stroke.Color = default and UI.Config.AccentColor or Color3.fromRGB(255, 255, 255)
-        t_stroke.Thickness = 1
-        t_stroke.Transparency = default and 0.5 or 0.85
+        t_stroke.Thickness = 1.2
+        t_stroke.Transparency = default and 0.4 or 0.8
         t_stroke.Parent = tile
         
         local t_btn = Instance.new("TextButton")
@@ -298,47 +388,64 @@ function UI:CreatePage(name, icon)
         t_btn.Text = ""
         t_btn.Parent = tile
         
+        -- Icon Glow
+        local t_glow = Instance.new("ImageLabel")
+        t_glow.Size = UDim2.new(0, 60, 0, 60)
+        t_glow.Position = UDim2.new(0.5, -30, 0.15, -15)
+        t_glow.Image = "rbxassetid://6014264734"
+        t_glow.ImageColor3 = default and UI.Config.AccentColor or Color3.fromRGB(255, 255, 255)
+        t_glow.ImageTransparency = 0.85
+        t_glow.BackgroundTransparency = 1
+        t_glow.Parent = tile
+        
         local t_ico = Instance.new("ImageLabel")
-        t_ico.Size = UDim2.new(0, 32, 0, 32)
-        t_ico.Position = UDim2.new(0.5, -16, 0.25, 0)
+        t_ico.Size = UDim2.new(0, 30, 0, 30)
+        t_ico.Position = UDim2.new(0.5, -15, 0.15, 0)
         t_ico.Image = f_icon or ""
         t_ico.BackgroundTransparency = 1
-        t_ico.ImageColor3 = default and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
+        t_ico.ImageColor3 = default and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(160, 160, 160)
         t_ico.Parent = tile
         
         local t_label = Instance.new("TextLabel")
         t_label.Size = UDim2.new(1, 0, 0, 20)
-        t_label.Position = UDim2.new(0, 0, 0.65, 0)
+        t_label.Position = UDim2.new(0, 0, 0.55, 0)
         t_label.BackgroundTransparency = 1
         t_label.Text = title:upper()
         t_label.TextColor3 = Color3.fromRGB(255, 255, 255)
-        t_label.Font = Enum.Font.GothamBold
-        t_label.TextSize = 11
+        t_label.Font = Enum.Font.GothamBlack
+        t_label.TextSize = 10
         t_label.Parent = tile
         
-        local t_status = Instance.new("Frame")
-        t_status.Size = UDim2.new(0, 4, 0, 4)
-        t_status.Position = UDim2.new(0.5, -2, 0.85, 0)
-        t_status.BackgroundColor3 = default and UI.Config.AccentColor or Color3.fromRGB(80, 80, 80)
+        local t_status = Instance.new("TextLabel")
+        t_status.Size = UDim2.new(1, 0, 0, 15)
+        t_status.Position = UDim2.new(0, 0, 0.72, 0)
+        t_status.BackgroundTransparency = 1
+        t_status.Text = default and "ACTIVE" or "OFF"
+        t_status.TextColor3 = default and UI.Config.AccentColor or Color3.fromRGB(100, 100, 100)
+        t_status.Font = Enum.Font.GothamBold
+        t_status.TextSize = 9
         t_status.Parent = tile
-        Instance.new("UICorner", t_status).CornerRadius = UDim.new(1, 0)
         
         local f_state = default
         
         t_btn.MouseEnter:Connect(function()
-            TweenService:Create(tile, TweenInfo.new(0.2), {BackgroundTransparency = 0.5}):Play()
-            TweenService:Create(t_stroke, TweenInfo.new(0.2), {Transparency = 0.4}):Play()
+            TweenService:Create(tile, TweenInfo.new(0.2), {BackgroundTransparency = 0.35}):Play()
+            TweenService:Create(t_stroke, TweenInfo.new(0.2), {Transparency = 0.3}):Play()
+            TweenService:Create(t_glow, TweenInfo.new(0.2), {ImageTransparency = 0.6}):Play()
         end)
         t_btn.MouseLeave:Connect(function()
-            TweenService:Create(tile, TweenInfo.new(0.2), {BackgroundTransparency = 0.7}):Play()
-            TweenService:Create(t_stroke, TweenInfo.new(0.2), {Transparency = f_state and 0.5 or 0.85}):Play()
+            TweenService:Create(tile, TweenInfo.new(0.2), {BackgroundTransparency = 0.5}):Play()
+            TweenService:Create(t_stroke, TweenInfo.new(0.2), {Transparency = f_state and 0.4 or 0.8}):Play()
+            TweenService:Create(t_glow, TweenInfo.new(0.2), {ImageTransparency = 0.85}):Play()
         end)
         
         t_btn.MouseButton1Click:Connect(function()
             f_state = not f_state
             TweenService:Create(t_stroke, TweenInfo.new(0.2), {Color = f_state and UI.Config.AccentColor or Color3.fromRGB(255, 255, 255), Transparency = 0.4}):Play()
-            TweenService:Create(t_ico, TweenInfo.new(0.2), {ImageColor3 = f_state and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)}):Play()
-            TweenService:Create(t_status, TweenInfo.new(0.2), {BackgroundColor3 = f_state and UI.Config.AccentColor or Color3.fromRGB(80, 80, 80)}):Play()
+            TweenService:Create(t_ico, TweenInfo.new(0.2), {ImageColor3 = f_state and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(160, 160, 160)}):Play()
+            TweenService:Create(t_glow, TweenInfo.new(0.2), {ImageColor3 = f_state and UI.Config.AccentColor or Color3.fromRGB(255, 255, 255)}):Play()
+            t_status.Text = f_state and "ACTIVE" or "OFF"
+            TweenService:Create(t_status, TweenInfo.new(0.2), {TextColor3 = f_state and UI.Config.AccentColor or Color3.fromRGB(100, 100, 100)}):Play()
             pcall(function() f_callback(f_state) end)
         end)
         
