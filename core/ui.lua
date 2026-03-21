@@ -33,7 +33,12 @@ end
 local GlobalBlur = createBlur()
 
 -- [[ UI INITIALIZATION ]]
+UI.Initialized = false
+
 function UI.Init()
+    if UI.Initialized then return end
+    UI.Initialized = true
+    
     local MainGui = Instance.new("ScreenGui")
     MainGui.Name = "Nexus_Elite"
     MainGui.IgnoreGuiInset = true
@@ -65,41 +70,14 @@ function UI.Init()
     
     Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 14)
     
-    -- [[ HYPER-MASTERPIECE LAYERS ]]
-    local GridOverlay = Instance.new("ImageLabel")
-    GridOverlay.Name = "GridOverlay"
-    GridOverlay.Size = UDim2.new(1.5, 0, 1.5, 0)
-    GridOverlay.Position = UDim2.new(-0.25, 0, -0.25, 0)
-    GridOverlay.BackgroundTransparency = 1
-    GridOverlay.Image = "rbxassetid://13247341381" -- Technical Grid
-    GridOverlay.ImageTransparency = 0.96
-    GridOverlay.ZIndex = 0
-    GridOverlay.Parent = MainFrame
-    
-    local NoiseOverlay = Instance.new("ImageLabel")
-    NoiseOverlay.Name = "NoiseOverlay"
-    NoiseOverlay.Size = UDim2.new(1, 0, 1, 0)
-    NoiseOverlay.BackgroundTransparency = 1
-    NoiseOverlay.Image = "rbxassetid://16124707185" -- Cinematic Noise
-    NoiseOverlay.ImageTransparency = 0.97
-    NoiseOverlay.ZIndex = 1
-    NoiseOverlay.Parent = MainFrame
-    
-    -- Optimized Parallax (RenderStepped)
-    local lastMouseX, lastMouseY = 0, 0
-    game:GetService("RunService").RenderStepped:Connect(function()
-        if not UI.IsVisible then return end
-        local mousePos = UserInputService:GetMouseLocation()
-        if mousePos.X == lastMouseX and mousePos.Y == lastMouseY then return end
-        lastMouseX, lastMouseY = mousePos.X, mousePos.Y
-        
-        local centerX, centerY = MainFrame.AbsolutePosition.X + MainFrame.AbsoluteSize.X/2, MainFrame.AbsolutePosition.Y + MainFrame.AbsoluteSize.Y/2
-        local deltaX = (mousePos.X - centerX) / 100
-        local deltaY = (mousePos.Y - centerY) / 100
-        
-        NoiseOverlay.Position = UDim2.new(0, deltaX, 0, deltaY)
-        GridOverlay.Position = UDim2.new(-0.25, deltaX * 1.5, -0.25, deltaY * 1.5)
-    end)
+    -- [[ OPTIMIZED BACKGROUND ]]
+    local BgOverlay = Instance.new("Frame")
+    BgOverlay.Name = "BgOverlay"
+    BgOverlay.Size = UDim2.new(1, 0, 1, 0)
+    BgOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    BgOverlay.BackgroundTransparency = 0.8
+    BgOverlay.ZIndex = 0
+    BgOverlay.Parent = MainFrame
     
     local HeaderLine = Instance.new("Frame")
     HeaderLine.Size = UDim2.new(1, 0, 0, 1)
@@ -223,7 +201,7 @@ function UI.Init()
     ParticleCont.Parent = MainFrame
     
     task.spawn(function()
-        for i = 1, 20 do -- Reduced to 20 for stability
+        for i = 1, 5 do -- Drastically reduced for performance
             local p = Instance.new("Frame")
             p.Size = UDim2.new(0, 1, 0, 1)
             p.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -233,13 +211,16 @@ function UI.Init()
             
             task.spawn(function()
                 while true do
-                    p.Position = UDim2.new(math.random(), 0, math.random(), 0)
-                    local t = TweenService:Create(p, TweenInfo.new(math.random(10, 20), Enum.EasingStyle.Linear), {
-                        Position = UDim2.new(math.random(), 0, math.random(), 0),
-                        BackgroundTransparency = math.random(5, 9) / 10
-                    })
-                    t:Play()
-                    t.Completed:Wait()
+                    if UI.IsVisible then
+                        local t = TweenService:Create(p, TweenInfo.new(5, Enum.EasingStyle.Linear), {
+                            Position = UDim2.new(math.random(), 0, math.random(), 0),
+                            BackgroundTransparency = 0.95
+                        })
+                        t:Play()
+                        t.Completed:Wait()
+                    else
+                        task.wait(1)
+                    end
                 end
             end)
         end
