@@ -33,12 +33,7 @@ end
 local GlobalBlur = createBlur()
 
 -- [[ UI INITIALIZATION ]]
-UI.Initialized = false
-
 function UI.Init()
-    if UI.Initialized then return end
-    UI.Initialized = true
-    
     local MainGui = Instance.new("ScreenGui")
     MainGui.Name = "Nexus_Elite"
     MainGui.IgnoreGuiInset = true
@@ -70,14 +65,42 @@ function UI.Init()
     
     Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 14)
     
-    -- [[ OPTIMIZED BACKGROUND ]]
-    local BgOverlay = Instance.new("Frame")
-    BgOverlay.Name = "BgOverlay"
-    BgOverlay.Size = UDim2.new(1, 0, 1, 0)
-    BgOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    BgOverlay.BackgroundTransparency = 0.8
-    BgOverlay.ZIndex = 0
-    BgOverlay.Parent = MainFrame
+    -- [[ HYPER-MASTERPIECE LAYERS ]]
+    local GridOverlay = Instance.new("ImageLabel")
+    GridOverlay.Name = "GridOverlay"
+    GridOverlay.Size = UDim2.new(1.5, 0, 1.5, 0)
+    GridOverlay.Position = UDim2.new(-0.25, 0, -0.25, 0)
+    GridOverlay.BackgroundTransparency = 1
+    GridOverlay.Image = "rbxassetid://13247341381" -- Technical Grid
+    GridOverlay.ImageTransparency = 0.96
+    GridOverlay.ZIndex = 0
+    GridOverlay.Parent = MainFrame
+    
+    local NoiseOverlay = Instance.new("ImageLabel")
+    NoiseOverlay.Name = "NoiseOverlay"
+    NoiseOverlay.Size = UDim2.new(1, 0, 1, 0)
+    NoiseOverlay.BackgroundTransparency = 1
+    NoiseOverlay.Image = "rbxassetid://16124707185" -- Cinematic Noise
+    NoiseOverlay.ImageTransparency = 0.97
+    NoiseOverlay.ZIndex = 1
+    NoiseOverlay.Parent = MainFrame
+    
+    -- Parallax Mouse Movement
+    UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mousePos = input.Position
+            local centerX, centerY = MainFrame.AbsolutePosition.X + MainFrame.AbsoluteSize.X/2, MainFrame.AbsolutePosition.Y + MainFrame.AbsoluteSize.Y/2
+            local deltaX = (mousePos.X - centerX) / 100
+            local deltaY = (mousePos.Y - centerY) / 100
+            
+            TweenService:Create(NoiseOverlay, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                Position = UDim2.new(0, deltaX, 0, deltaY)
+            }):Play()
+            TweenService:Create(GridOverlay, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                Position = UDim2.new(-0.25, deltaX * 1.5, -0.25, deltaY * 1.5)
+            }):Play()
+        end
+    end)
     
     local HeaderLine = Instance.new("Frame")
     HeaderLine.Size = UDim2.new(1, 0, 0, 1)
@@ -201,7 +224,7 @@ function UI.Init()
     ParticleCont.Parent = MainFrame
     
     task.spawn(function()
-        for i = 1, 5 do -- Drastically reduced for performance
+        for i = 1, 25 do
             local p = Instance.new("Frame")
             p.Size = UDim2.new(0, 1, 0, 1)
             p.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -209,20 +232,17 @@ function UI.Init()
             p.BorderSizePixel = 0
             p.Parent = ParticleCont
             
-            task.spawn(function()
-                while true do
-                    if UI.IsVisible then
-                        local t = TweenService:Create(p, TweenInfo.new(5, Enum.EasingStyle.Linear), {
-                            Position = UDim2.new(math.random(), 0, math.random(), 0),
-                            BackgroundTransparency = 0.95
-                        })
-                        t:Play()
-                        t.Completed:Wait()
-                    else
-                        task.wait(1)
-                    end
-                end
-            end)
+            local function move()
+                p.Position = UDim2.new(math.random(), 0, math.random(), 0)
+                local t = TweenService:Create(p, TweenInfo.new(math.random(10, 20), Enum.EasingStyle.Linear), {
+                    Position = UDim2.new(math.random(), 0, math.random(), 0),
+                    BackgroundTransparency = math.random(5, 9) / 10
+                })
+                t:Play()
+                t.Completed:Wait()
+                move()
+            end
+            task.spawn(move)
         end
     end)
     
@@ -577,6 +597,11 @@ function UI:CreatePage(name, icon)
         techMarker.BackgroundTransparency = 0.5
         techMarker.ZIndex = 2
         techMarker.Parent = tile
+        tile.Name = title .. "Tile"
+        tile.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        tile.BackgroundTransparency = 0.5
+        tile.Parent = page.Container
+        
         local t_corner = Instance.new("UICorner")
         t_corner.CornerRadius = UDim.new(0, 12)
         t_corner.Parent = tile
@@ -682,32 +707,18 @@ function UI:CreatePage(name, icon)
         t_status.TextSize = 9
         t_status.Parent = tile
         
-        -- Technical Decor (Fill space)
-        local techID = Instance.new("TextLabel")
-        techID.Size = UDim2.new(0, 40, 0, 10)
-        techID.Position = UDim2.new(1, -45, 0, 5)
-        techID.BackgroundTransparency = 1
-        techID.Text = "0x" .. string.format("%X", math.random(100, 999))
-        techID.TextColor3 = Color3.fromRGB(255, 255, 255)
-        techID.TextTransparency = 0.8
-        techID.Font = Enum.Font.Code
-        techID.TextSize = 8
-        techID.ZIndex = 5
-        techID.Parent = tile
+        local f_state = default
         
-        local techMarker = Instance.new("Frame")
-        techMarker.Size = UDim2.new(0, 2, 0, 2)
-        techMarker.Position = UDim2.new(0, 5, 0, 5)
-        techMarker.BackgroundColor3 = UI.Config.AccentColor
-        techMarker.BackgroundTransparency = 0.5
-        techMarker.ZIndex = 5
-        techMarker.Parent = tile
-        
-        -- Aura Corners Animation state
-        for _, corner in pairs(corners) do
-            corner[1].BackgroundTransparency = default and 0.2 or 1
-            corner[2].BackgroundTransparency = default and 0.2 or 1
-        end
+        t_btn.MouseEnter:Connect(function()
+            TweenService:Create(tile, TweenInfo.new(0.2), {BackgroundTransparency = 0.35}):Play()
+            TweenService:Create(t_stroke, TweenInfo.new(0.2), {Transparency = 0.3}):Play()
+            TweenService:Create(t_glow, TweenInfo.new(0.2), {ImageTransparency = 0.6}):Play()
+        end)
+        t_btn.MouseLeave:Connect(function()
+            TweenService:Create(tile, TweenInfo.new(0.2), {BackgroundTransparency = 0.5}):Play()
+            TweenService:Create(t_stroke, TweenInfo.new(0.2), {Transparency = f_state and 0.4 or 0.8}):Play()
+            TweenService:Create(t_glow, TweenInfo.new(0.2), {ImageTransparency = 0.85}):Play()
+        end)
         
         t_btn.MouseButton1Click:Connect(function()
             f_state = not f_state
@@ -857,73 +868,14 @@ function UI:CreatePage(name, icon)
         return settingsAPI
     end
     
-    -- [[ SETTINGS BUTTON (BOTTOM) ]]
-    local SettingsBtn = Instance.new("TextButton")
-    SettingsBtn.Name = "SettingsBtn"
-    SettingsBtn.Size = UDim2.new(1, -20, 0, 38)
-    SettingsBtn.Position = UDim2.new(0, 10, 1, -50)
-    SettingsBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    SettingsBtn.BackgroundTransparency = 0.5
-    SettingsBtn.Text = ""
-    SettingsBtn.Parent = Sidebar
-    
-    Instance.new("UICorner", SettingsBtn).CornerRadius = UDim.new(0, 10)
-    local s_stroke = Instance.new("UIStroke")
-    s_stroke.Color = Color3.fromRGB(255, 255, 255); s_stroke.Thickness = 1; s_stroke.Transparency = 0.9; s_stroke.Parent = SettingsBtn
-    
-    local s_ico = Instance.new("TextLabel")
-    s_ico.Name = "Icon"
-    s_ico.Size = UDim2.new(0, 24, 0, 24)
-    s_ico.Position = UDim2.new(0, 8, 0.5, -12)
-    s_ico.BackgroundTransparency = 1
-    s_ico.Text = "⚙️"
-    s_ico.TextColor3 = Color3.fromRGB(180, 180, 180)
-    s_ico.Font = Enum.Font.GothamBold
-    s_ico.TextSize = 16
-    s_ico.Parent = SettingsBtn
-    
-    local s_label = Instance.new("TextLabel")
-    s_label.Name = "Label"
-    s_label.Size = UDim2.new(1, -45, 1, 0)
-    s_label.Position = UDim2.new(0, 35, 0, 0)
-    s_label.BackgroundTransparency = 1
-    s_label.Text = "SETTINGS"
-    s_label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    s_label.Font = Enum.Font.GothamBold
-    s_label.TextSize = 11
-    s_label.TextXAlignment = Enum.TextXAlignment.Left
-    s_label.TextTransparency = 1
-    s_label.Parent = SettingsBtn
-    
-    -- Create Global Settings Page
-    local GlobalSettings = UI:CreatePage("Settings", "⚙️")
-    GlobalSettings.Container.Parent = ContentArea
-    
-    local theme_s = GlobalSettings:AddFeatureTile("UI Theme", "🎨", false, function(s) end)
-    theme_s:AddToggle("Rainbow Accent", false, function(s) end)
-    theme_s:AddSlider("Glass Alpha", 0, 100, 15, function(v) UI.Refs.MainFrame.BackgroundTransparency = v/100 end)
-    
-    local key_s = GlobalSettings:AddFeatureTile("Keybinds", "⌨️", false, function(s) end)
-    key_s:AddToggle("Insert Toggle", true, function(s) end)
-    
-    SettingsBtn.MouseButton1Click:Connect(function()
-        UI:SwitchPage("Settings")
-        for _, otherBtn in pairs(Sidebar:GetChildren()) do
-            if otherBtn:IsA("TextButton") and otherBtn.Name ~= "Hamburger" then
-                local icon = otherBtn:FindFirstChild("Icon")
-                if icon then TweenService:Create(icon, TweenInfo.new(0.3), {TextColor3 = Color3.fromRGB(180, 180, 180)}):Play() end
-                local frame = otherBtn:FindFirstChild("Frame")
-                if frame then TweenService:Create(frame, TweenInfo.new(0.3), {Size = UDim2.new(0, 2, 0, 0)}):Play() end
-            end
-        end
-        TweenService:Create(s_ico, TweenInfo.new(0.3), {TextColor3 = UI.Config.AccentColor}):Play()
-    end)
-    
     -- Initialize first page
-    UI:SwitchPage("Combat")
+    if UI:GetPageCount() == 1 then
+        UI:SwitchPage(name)
+        TweenService:Create(btnIco, TweenInfo.new(0.3), {ImageColor3 = UI.Config.AccentColor}):Play()
+        TweenService:Create(btnIndicator, TweenInfo.new(0.3), {Size = UDim2.new(0, 2, 0, 20), Position = UDim2.new(1, 8, 0.5, -10)}):Play()
+    end
     
-    if getgenv then getgenv().Nexus_UI = MainGui end
-    print("[NEXUS] 💎 UI Hyper-Masterpiece Engine ready!")
+    return page
 end
 
 -- [[ HELPER: PAGE COUNT ]]
