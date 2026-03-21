@@ -246,11 +246,33 @@ function UI.Init()
     HamburgerBtn.Size = UDim2.new(0, 30, 0, 30)
     HamburgerBtn.Position = UDim2.new(0, 17, 0, 10)
     HamburgerBtn.BackgroundTransparency = 1
-    HamburgerBtn.Text = "≡" -- Hamburger symbol
-    HamburgerBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-    HamburgerBtn.Font = Enum.Font.GothamBold
-    HamburgerBtn.TextSize = 24
+    HamburgerBtn.Text = ""
     HamburgerBtn.Parent = Sidebar
+    
+    local function createBar(yOffset)
+        local bar = Instance.new("Frame")
+        bar.Size = UDim2.new(0, 18, 0, 2)
+        bar.Position = UDim2.new(0.5, -9, 0.5, yOffset)
+        bar.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+        bar.BorderSizePixel = 0
+        bar.Parent = HamburgerBtn
+        return bar
+    end
+    
+    local bar1 = createBar(-5)
+    local bar2 = createBar(0)
+    local bar3 = createBar(5)
+    
+    HamburgerBtn.MouseEnter:Connect(function()
+        TweenService:Create(bar1, TweenInfo.new(0.2), {BackgroundColor3 = UI.Config.AccentColor}):Play()
+        TweenService:Create(bar2, TweenInfo.new(0.2), {BackgroundColor3 = UI.Config.AccentColor}):Play()
+        TweenService:Create(bar3, TweenInfo.new(0.2), {BackgroundColor3 = UI.Config.AccentColor}):Play()
+    end)
+    HamburgerBtn.MouseLeave:Connect(function()
+        TweenService:Create(bar1, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(200, 200, 200)}):Play()
+        TweenService:Create(bar2, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(200, 200, 200)}):Play()
+        TweenService:Create(bar3, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(200, 200, 200)}):Play()
+    end)
     
     UI.SidebarExpanded = false
     HamburgerBtn.MouseButton1Click:Connect(function()
@@ -444,13 +466,15 @@ function UI:CreatePage(name, icon)
     btnStroke.Transparency = 0.9
     btnStroke.Parent = btn
     
-    local btnIco = Instance.new("ImageLabel")
-    btnIco.Name = "ImageLabel"
+    local btnIco = Instance.new("TextLabel")
+    btnIco.Name = "Icon"
     btnIco.Size = UDim2.new(0, 18, 0, 18)
     btnIco.Position = UDim2.new(0, 10, 0.5, -9)
-    btnIco.Image = icon or ""
     btnIco.BackgroundTransparency = 1
-    btnIco.ImageColor3 = Color3.fromRGB(120, 120, 120)
+    btnIco.Text = icon or "❓"
+    btnIco.TextColor3 = Color3.fromRGB(180, 180, 180)
+    btnIco.Font = Enum.Font.GothamBold
+    btnIco.TextSize = 14
     btnIco.Parent = btn
     
     local btnLabel = Instance.new("TextLabel")
@@ -530,12 +554,15 @@ function UI:CreatePage(name, icon)
         t_glow.BackgroundTransparency = 1
         t_glow.Parent = tile
         
-        local t_ico = Instance.new("ImageLabel")
-        t_ico.Size = UDim2.new(0, 30, 0, 30)
-        t_ico.Position = UDim2.new(0.5, -15, 0.15, 0)
-        t_ico.Image = f_icon or ""
+        local t_ico = Instance.new("TextLabel")
+        t_ico.Name = "IconLabel"
+        t_ico.Size = UDim2.new(0, 40, 0, 40)
+        t_ico.Position = UDim2.new(0.5, -20, 0.1, 0)
         t_ico.BackgroundTransparency = 1
-        t_ico.ImageColor3 = default and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(160, 160, 160)
+        t_ico.Text = f_icon or "❓"
+        t_ico.TextColor3 = default and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(160, 160, 160)
+        t_ico.Font = Enum.Font.GothamBold
+        t_ico.TextSize = 28
         t_ico.Parent = tile
         
         local t_label = Instance.new("TextLabel")
@@ -547,6 +574,46 @@ function UI:CreatePage(name, icon)
         t_label.Font = Enum.Font.GothamBlack
         t_label.TextSize = 10
         t_label.Parent = tile
+        
+        -- Custom Drawn Corner Brackets
+        local brackets = Instance.new("Frame")
+        brackets.Name = "Brackets"
+        brackets.Size = UDim2.new(1, -10, 1, -10)
+        brackets.Position = UDim2.new(0, 5, 0, 10)
+        brackets.BackgroundTransparency = 1
+        brackets.Parent = tile
+        
+        local function createCorner(anchorPoint, pos)
+            local f = Instance.new("Frame")
+            f.Size = UDim2.new(0, 12, 0, 12)
+            f.Position = pos
+            f.AnchorPoint = anchorPoint
+            f.BackgroundTransparency = 1
+            f.Parent = brackets
+            
+            local line1 = Instance.new("Frame")
+            line1.Size = UDim2.new(0, 1, 1, 0)
+            line1.BackgroundColor3 = UI.Config.AccentColor
+            line1.BackgroundTransparency = default and 0.2 or 1
+            line1.BorderSizePixel = 0
+            line1.Parent = f
+            
+            local line2 = Instance.new("Frame")
+            line2.Size = UDim2.new(1, 0, 0, 1)
+            line2.BackgroundColor3 = UI.Config.AccentColor
+            line2.BackgroundTransparency = default and 0.2 or 1
+            line2.BorderSizePixel = 0
+            line2.Parent = f
+            
+            return {line1, line2}
+        end
+        
+        local corners = {
+            createCorner(Vector2.new(0, 0), UDim2.new(0, 0, 0, 0)),
+            createCorner(Vector2.new(1, 0), UDim2.new(1, 0, 0, 0)),
+            createCorner(Vector2.new(0, 1), UDim2.new(0, 0, 1, 0)),
+            createCorner(Vector2.new(1, 1), UDim2.new(1, 0, 1, 0))
+        }
         
         local t_status = Instance.new("TextLabel")
         t_status.Size = UDim2.new(1, 0, 0, 15)
@@ -574,8 +641,15 @@ function UI:CreatePage(name, icon)
         t_btn.MouseButton1Click:Connect(function()
             f_state = not f_state
             TweenService:Create(t_stroke, TweenInfo.new(0.2), {Color = f_state and UI.Config.AccentColor or Color3.fromRGB(255, 255, 255), Transparency = 0.4}):Play()
-            TweenService:Create(t_ico, TweenInfo.new(0.2), {ImageColor3 = f_state and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(160, 160, 160)}):Play()
+            TweenService:Create(t_ico, TweenInfo.new(0.2), {TextColor3 = f_state and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(160, 160, 160)}):Play()
             TweenService:Create(t_glow, TweenInfo.new(0.2), {ImageColor3 = f_state and UI.Config.AccentColor or Color3.fromRGB(255, 255, 255)}):Play()
+            
+            -- Brackets Animation
+            for _, corner in pairs(corners) do
+                TweenService:Create(corner[1], TweenInfo.new(0.3), {BackgroundTransparency = f_state and 0.2 or 1}):Play()
+                TweenService:Create(corner[2], TweenInfo.new(0.3), {BackgroundTransparency = f_state and 0.2 or 1}):Play()
+            end
+            
             t_status.Text = f_state and "ACTIVE" or "OFF"
             TweenService:Create(t_status, TweenInfo.new(0.2), {TextColor3 = f_state and UI.Config.AccentColor or Color3.fromRGB(100, 100, 100)}):Play()
             pcall(function() f_callback(f_state) end)

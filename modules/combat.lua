@@ -1,15 +1,16 @@
+```lua
 -- [[ NEXUS MODULE - COMBAT ]]
 -- Contains Aimbot, Silent Aim, and Trigger Bot features.
 
 local Module = {
     Name = "Combat",
-    Icon = "rbxassetid://10709761143" -- Target/Aim Icon
+    Icon = "🎯"
 }
 
 function Module.Init()
     local page = _G.Nexus.Core.UI:CreatePage("Combat", Module.Icon)
     
-    local aimbot = page:AddFeatureTile("Aimbot", "rbxassetid://10709761143", false, function(state) end)
+    local aimbot = page:AddFeatureTile("Aimbot", "🎯", false, function(state) end)
     aimbot:AddToggle("Wall Check", true, function(s) end)
     aimbot:AddSlider("Smoothness", 1, 10, 5, function(v) end)
     aimbot:AddSlider("FOV", 10, 360, 90, function(v) end)
