@@ -17,16 +17,15 @@ end
 -- [[ METATABLE HOOKING ]]
 
 function Bypass:Initialize()
-    if not getrawmetatable then
-        warn("[BYPASS] ⚠️ getrawmetatable not found, hooks disabled.")
+    if not (getrawmetatable and setreadonly and newcclosure) then
+        warn("[BYPASS] ⚠️ Some environment functions are missing. Bypasses may be limited.")
         return
     end
     
     G.UniversalShooter.Settings = G.UniversalShooter.Settings or {}
-    
-    print("[BYPASS] 🛡️ Hooking Metatable...")
-    
     local mt = getrawmetatable(game)
+    if not mt then return end
+    
     local oldIndex = mt.__index
     local oldNewIndex = mt.__newindex
     local oldNamecall = mt.__namecall
