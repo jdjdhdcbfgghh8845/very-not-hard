@@ -13,7 +13,7 @@ function Loader.Init(loadScriptFunc)
         "world.lua"
     }
     
-    local basePath = "c:/Users/JDH/Desktop/AC/new/modules/"
+    local basePath = "modules/"
     
     for _, moduleFile in pairs(modulesToLoad) do
         local path = basePath .. moduleFile
