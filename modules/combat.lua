@@ -1,4 +1,3 @@
-```lua
 -- [[ NEXUS MODULE - COMBAT ]]
 -- Contains Aimbot, Silent Aim, and Trigger Bot features.
 
@@ -16,11 +15,11 @@ function Module.Init()
     aimbot:AddSlider("FOV", 10, 360, 90, function(v) end)
     aimbot:AddToggle("Predict Movement", true, function(s) end)
     
-    local triggerbot = page:AddFeatureTile("Trigger Bot", "rbxassetid://10709761595", false, function(state) end)
+    local triggerbot = page:AddFeatureTile("Trigger Bot", "🔫", false, function(state) end)
     triggerbot:AddSlider("Delay", 0, 1, 0.1, function(v) end)
     triggerbot:AddToggle("Require ADS", false, function(s) end)
 
-    local silentaim = page:AddFeatureTile("Silent Aim", "rbxassetid://10709761922", false, function(state) end)
+    local silentaim = page:AddFeatureTile("Silent Aim", "🎯", false, function(state) end)
     silentaim:AddToggle("Headshot Only", false, function(s) end)
     silentaim:AddSlider("Hit Chance", 0, 100, 80, function(v) end)
 end
