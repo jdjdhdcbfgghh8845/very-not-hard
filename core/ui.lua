@@ -229,10 +229,49 @@ function UI.Init()
     Sidebar.Size = UDim2.new(0, UI.Config.SidebarWidth, 1, -45)
     Sidebar.Position = UDim2.new(0, 0, 0, 45)
     Sidebar.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
-    Sidebar.BackgroundTransparency = 0.7
+    Sidebar.BackgroundTransparency = 0.4 -- More opaque for contrast
     Sidebar.BorderSizePixel = 0
+    Sidebar.ZIndex = 2
     Sidebar.Parent = MainFrame
     UI.Refs.Sidebar = Sidebar
+    
+    local SidebarStroke = Instance.new("UIStroke")
+    SidebarStroke.Color = Color3.fromRGB(255, 255, 255)
+    SidebarStroke.Thickness = 1
+    SidebarStroke.Transparency = 0.92
+    SidebarStroke.Parent = Sidebar
+    
+    local HamburgerBtn = Instance.new("TextButton")
+    HamburgerBtn.Name = "Hamburger"
+    HamburgerBtn.Size = UDim2.new(0, 30, 0, 30)
+    HamburgerBtn.Position = UDim2.new(0, 17, 0, 10)
+    HamburgerBtn.BackgroundTransparency = 1
+    HamburgerBtn.Text = "≡" -- Hamburger symbol
+    HamburgerBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+    HamburgerBtn.Font = Enum.Font.GothamBold
+    HamburgerBtn.TextSize = 24
+    HamburgerBtn.Parent = Sidebar
+    
+    UI.SidebarExpanded = false
+    HamburgerBtn.MouseButton1Click:Connect(function()
+        UI.SidebarExpanded = not UI.SidebarExpanded
+        local targetWidth = UI.SidebarExpanded and 160 or UI.Config.SidebarWidth
+        TweenService:Create(Sidebar, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, targetWidth, 1, -45)}):Play()
+        TweenService:Create(UI.Refs.ContentArea, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Position = UDim2.new(0, targetWidth, 0, 45),
+            Size = UDim2.new(1, -targetWidth, 1, -45)
+        }):Play()
+        
+        -- Toggle Labels
+        for _, child in pairs(Sidebar:GetChildren()) do
+            if child:IsA("TextButton") and child.Name ~= "Hamburger" then
+                local label = child:FindFirstChild("Label")
+                if label then
+                    TweenService:Create(label, TweenInfo.new(0.3), {TextTransparency = UI.SidebarExpanded and 0 or 1}):Play()
+                end
+            end
+        end
+    end)
     
     local ContentArea = Instance.new("Frame")
     ContentArea.Name = "ContentArea"
@@ -388,8 +427,8 @@ function UI:CreatePage(name, icon)
     -- [[ SIDEBAR BUTTON ]]
     local btn = Instance.new("TextButton")
     btn.Name = name .. "Btn"
-    btn.Size = UDim2.new(0, 38, 0, 38)
-    btn.Position = UDim2.new(0.5, -19, 0, 20 + (UI:GetPageCount() * 50))
+    btn.Size = UDim2.new(1, -20, 0, 38)
+    btn.Position = UDim2.new(0, 10, 0, 50 + (UI:GetPageCount() * 45))
     btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     btn.BackgroundTransparency = 0.5
     btn.Text = ""
@@ -407,17 +446,30 @@ function UI:CreatePage(name, icon)
     
     local btnIco = Instance.new("ImageLabel")
     btnIco.Name = "ImageLabel"
-    btnIco.Size = UDim2.new(0, 20, 0, 20)
-    btnIco.Position = UDim2.new(0.5, -10, 0.5, -10)
+    btnIco.Size = UDim2.new(0, 18, 0, 18)
+    btnIco.Position = UDim2.new(0, 10, 0.5, -9)
     btnIco.Image = icon or ""
     btnIco.BackgroundTransparency = 1
     btnIco.ImageColor3 = Color3.fromRGB(120, 120, 120)
     btnIco.Parent = btn
     
+    local btnLabel = Instance.new("TextLabel")
+    btnLabel.Name = "Label"
+    btnLabel.Size = UDim2.new(1, -45, 1, 0)
+    btnLabel.Position = UDim2.new(0, 35, 0, 0)
+    btnLabel.BackgroundTransparency = 1
+    btnLabel.Text = name:upper()
+    btnLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btnLabel.Font = Enum.Font.GothamBold
+    btnLabel.TextSize = 11
+    btnLabel.TextXAlignment = Enum.TextXAlignment.Left
+    btnLabel.TextTransparency = 1 -- Hidden by default
+    btnLabel.Parent = btn
+    
     local btnIndicator = Instance.new("Frame")
     btnIndicator.Name = "Frame"
     btnIndicator.Size = UDim2.new(0, 2, 0, 0)
-    btnIndicator.Position = UDim2.new(1, 8, 0.5, 0)
+    btnIndicator.Position = UDim2.new(0, -6, 0.5, 0)
     btnIndicator.BackgroundColor3 = UI.Config.AccentColor
     btnIndicator.BorderSizePixel = 0
     btnIndicator.Parent = btn
@@ -425,14 +477,14 @@ function UI:CreatePage(name, icon)
     btn.MouseButton1Click:Connect(function()
         UI:SwitchPage(name)
         for _, otherBtn in pairs(UI.Refs.Sidebar:GetChildren()) do
-            if otherBtn:IsA("TextButton") then
+            if otherBtn:IsA("TextButton") and otherBtn.Name ~= "Hamburger" then
                 TweenService:Create(otherBtn.ImageLabel, TweenInfo.new(0.3), {ImageColor3 = Color3.fromRGB(120, 120, 120)}):Play()
-                TweenService:Create(otherBtn.Frame, TweenInfo.new(0.3), {Size = UDim2.new(0, 2, 0, 0), Position = UDim2.new(1, 8, 0.5, 0)}):Play()
+                TweenService:Create(otherBtn.Frame, TweenInfo.new(0.3), {Size = UDim2.new(0, 2, 0, 0), Position = UDim2.new(0, -6, 0.5, 0)}):Play()
                 TweenService:Create(otherBtn.UIStroke, TweenInfo.new(0.3), {Transparency = 0.9}):Play()
             end
         end
         TweenService:Create(btnIco, TweenInfo.new(0.3), {ImageColor3 = UI.Config.AccentColor}):Play()
-        TweenService:Create(btnIndicator, TweenInfo.new(0.3), {Size = UDim2.new(0, 2, 0, 16), Position = UDim2.new(1, 8, 0.5, -8)}):Play()
+        TweenService:Create(btnIndicator, TweenInfo.new(0.3), {Size = UDim2.new(0, 2, 0, 16), Position = UDim2.new(0, -6, 0.5, -8)}):Play()
         TweenService:Create(btnStroke, TweenInfo.new(0.3), {Transparency = 0.6}):Play()
     end)
     
