@@ -7,9 +7,9 @@ local G = getgenv and getgenv() or _G
 G.UniversalShooter = G.UniversalShooter or {}
 
 -- [[ CONFIGURATION ]]
-local REPO = "jdjdhdcbfgghh8845/script"
-local BRANCH = "main" -- Change this if you use another branch
-local BASE_URL = "https://raw.githubusercontent.com/" .. REPO .. "/refs/heads/" .. BRANCH .. "/AC/new/"
+local REPO = "jdjdhdcbfgghh8845/very-not-hard"
+local BRANCH = "main"
+local BASE_URL = "https://raw.githubusercontent.com/" .. REPO .. "/" .. BRANCH .. "/"
 local LOCAL_PATH = "new/" -- Path inside your executor's workspace
 
 -- [[ DEV MODE TOGGLE ]]
