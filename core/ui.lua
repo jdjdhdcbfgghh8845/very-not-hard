@@ -19,7 +19,7 @@ UI.Config = {
 UI.Pages = {}
 UI.Refs = {} -- Dedicated table for instance references
 UI.CurrentPage = nil
-UI.IsVisible = true
+UI.IsVisible = false
 
 -- [[ UTILS - BLUR ]]
 local function createBlur()
@@ -320,12 +320,27 @@ function UI.Init()
         end
     end)
     
-    -- Protection
-    if getgenv then getgenv().Nexus_UI = MainGui end
-    MainGui.Parent = CoreGui
-    UI:Toggle() -- Show by default
+    -- Protection & Parenting
+    local TargetParent = CoreGui
+    pcall(function()
+        MainGui.Parent = TargetParent
+    end)
+    if MainGui.Parent ~= TargetParent then
+        MainGui.Parent = game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
+    end
     
-    print("[NEXUS] 💎 UI Vitreous Engine successfully loaded!")
+    MainGui.DisplayOrder = 999
+    MainGui.Enabled = true
+    
+    -- Initial State (Visible by default)
+    UI.IsVisible = true
+    MainFrame.Position = UDim2.new(0.5, -350, 0.5, -225)
+    GlowFrame.Position = UDim2.new(0.5, -375, 0.5, -250)
+    GlowFrame.ImageTransparency = 0.3
+    GlobalBlur.Size = 15
+    
+    if getgenv then getgenv().Nexus_UI = MainGui end
+    print("[NEXUS] 💎 UI Masterpiece Engine ready!")
 end
 
 -- [[ TOGGLE UI ]]
@@ -334,13 +349,11 @@ function UI:Toggle()
     
     local targetPos = UI.IsVisible and UDim2.new(0.5, -350, 0.5, -225) or UDim2.new(0.5, -350, 1.5, 0)
     local targetBlur = UI.IsVisible and 15 or 0
+    local targetGlow = UI.IsVisible and 0.3 or 1
     
     TweenService:Create(UI.Refs.MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPos}):Play()
-    TweenService:Create(UI.Refs.GlowFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPos + UDim2.new(0, -25, 0, -25), ImageTransparency = UI.IsVisible and 0.3 or 1}):Play()
+    TweenService:Create(UI.Refs.GlowFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPos + UDim2.new(0, -25, 0, -25), ImageTransparency = targetGlow}):Play()
     TweenService:Create(GlobalBlur, TweenInfo.new(0.5), {Size = targetBlur}):Play()
-    
-    if UI.IsVisible then UI.Refs.MainGui.Enabled = true
-    else task.delay(0.5, function() if not UI.IsVisible then UI.Refs.MainGui.Enabled = false end end) end
 end
 
 -- [[ NAVIGATION API ]]
