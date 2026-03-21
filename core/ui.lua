@@ -707,18 +707,32 @@ function UI:CreatePage(name, icon)
         t_status.TextSize = 9
         t_status.Parent = tile
         
-        local f_state = default
+        -- Technical Decor (Fill space)
+        local techID = Instance.new("TextLabel")
+        techID.Size = UDim2.new(0, 40, 0, 10)
+        techID.Position = UDim2.new(1, -45, 0, 5)
+        techID.BackgroundTransparency = 1
+        techID.Text = "0x" .. string.format("%X", math.random(100, 999))
+        techID.TextColor3 = Color3.fromRGB(255, 255, 255)
+        techID.TextTransparency = 0.8
+        techID.Font = Enum.Font.Code
+        techID.TextSize = 8
+        techID.ZIndex = 5
+        techID.Parent = tile
         
-        t_btn.MouseEnter:Connect(function()
-            TweenService:Create(tile, TweenInfo.new(0.2), {BackgroundTransparency = 0.35}):Play()
-            TweenService:Create(t_stroke, TweenInfo.new(0.2), {Transparency = 0.3}):Play()
-            TweenService:Create(t_glow, TweenInfo.new(0.2), {ImageTransparency = 0.6}):Play()
-        end)
-        t_btn.MouseLeave:Connect(function()
-            TweenService:Create(tile, TweenInfo.new(0.2), {BackgroundTransparency = 0.5}):Play()
-            TweenService:Create(t_stroke, TweenInfo.new(0.2), {Transparency = f_state and 0.4 or 0.8}):Play()
-            TweenService:Create(t_glow, TweenInfo.new(0.2), {ImageTransparency = 0.85}):Play()
-        end)
+        local techMarker = Instance.new("Frame")
+        techMarker.Size = UDim2.new(0, 2, 0, 2)
+        techMarker.Position = UDim2.new(0, 5, 0, 5)
+        techMarker.BackgroundColor3 = UI.Config.AccentColor
+        techMarker.BackgroundTransparency = 0.5
+        techMarker.ZIndex = 5
+        techMarker.Parent = tile
+        
+        -- Aura Corners Animation state
+        for _, corner in pairs(corners) do
+            corner[1].BackgroundTransparency = default and 0.2 or 1
+            corner[2].BackgroundTransparency = default and 0.2 or 1
+        end
         
         t_btn.MouseButton1Click:Connect(function()
             f_state = not f_state
