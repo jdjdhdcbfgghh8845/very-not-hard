@@ -12,12 +12,12 @@ UI.Config = {
     WindowSize = UDim2.new(0, 700, 0, 450),
     AccentColor = Color3.fromRGB(0, 180, 255),
     BgColor = Color3.fromRGB(10, 10, 10),
-    GlassTransparency = 0.35, -- Highly transparent
     SidebarWidth = 65,
     AnimSpeed = 0.3
 }
 
 UI.Pages = {}
+UI.Refs = {} -- Dedicated table for instance references
 UI.CurrentPage = nil
 UI.IsVisible = true
 
@@ -38,32 +38,32 @@ function UI.Init()
     MainGui.Name = "Nexus_Elite"
     MainGui.IgnoreGuiInset = true
     MainGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    UI.Refs.MainGui = MainGui
     
     -- Main Container (Outer Glow)
     local GlowFrame = Instance.new("ImageLabel")
     GlowFrame.Name = "GlowFrame"
     GlowFrame.Size = UI.Config.WindowSize + UDim2.new(0, 50, 0, 50)
-    GlowFrame.Position = UDim2.new(0.5, -375, 0.5, -250)
+    GlowFrame.Position = UDim2.new(0.5, -375, 0.5, -225 + 1000) -- Offset for init
     GlowFrame.BackgroundTransparency = 1
-    GlowFrame.Image = "rbxassetid://6014264734" -- High-quality glow asset
+    GlowFrame.Image = "rbxassetid://6014264734"
     GlowFrame.ImageColor3 = UI.Config.AccentColor
-    GlowFrame.ImageTransparency = 0.7
+    GlowFrame.ImageTransparency = 1
     GlowFrame.Parent = MainGui
+    UI.Refs.GlowFrame = GlowFrame
     
-    -- Main Frame (The Elite Glass)
+    -- Main Frame
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
     MainFrame.Size = UI.Config.WindowSize
-    MainFrame.Position = UDim2.new(0.5, -350, 0.5, -225)
+    MainFrame.Position = UDim2.new(0.5, -350, 0.5, -225 + 1000)
     MainFrame.BackgroundColor3 = UI.Config.BgColor
-    MainFrame.BackgroundTransparency = 0.15 -- Darker, more glass feel
+    MainFrame.BackgroundTransparency = 0.15
     MainFrame.ClipsDescendants = true
     MainFrame.Parent = MainGui
-    UI.MainFrame = MainFrame
+    UI.Refs.MainFrame = MainFrame
     
-    local MainCorner = Instance.new("UICorner")
-    MainCorner.CornerRadius = UDim.new(0, 14)
-    MainCorner.Parent = MainFrame
+    Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 14)
     
     -- [[ TOP HEADER ]]
     local Header = Instance.new("Frame")
@@ -104,23 +104,107 @@ function UI.Init()
     VersionLabel.TextXAlignment = Enum.TextXAlignment.Left
     VersionLabel.Parent = Header
     
+    -- [[ MASTERPIECE TELEMETRY ]]
+    local Telemetry = Instance.new("Frame")
+    Telemetry.Name = "Telemetry"
+    Telemetry.Size = UDim2.new(0, 200, 1, 0)
+    Telemetry.Position = UDim2.new(1, -210, 0, 0)
+    Telemetry.BackgroundTransparency = 1
+    Telemetry.Parent = Header
+    
+    local FPSLabel = Instance.new("TextLabel")
+    FPSLabel.Size = UDim2.new(0.5, 0, 1, 0)
+    FPSLabel.BackgroundTransparency = 1
+    FPSLabel.Text = "60 FPS"
+    FPSLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+    FPSLabel.Font = Enum.Font.GothamMedium
+    FPSLabel.TextSize = 10
+    FPSLabel.TextXAlignment = Enum.TextXAlignment.Right
+    FPSLabel.Parent = Telemetry
+    
+    local PingLabel = Instance.new("TextLabel")
+    PingLabel.Size = UDim2.new(0.5, 0, 1, 0)
+    PingLabel.Position = UDim2.new(0.5, 0, 0, 0)
+    PingLabel.BackgroundTransparency = 1
+    PingLabel.Text = "20 MS"
+    PingLabel.TextColor3 = UI.Config.AccentColor
+    PingLabel.Font = Enum.Font.GothamMedium
+    PingLabel.TextSize = 10
+    PingLabel.TextXAlignment = Enum.TextXAlignment.Right
+    PingLabel.Parent = Telemetry
+    
+    task.spawn(function()
+        local lastTime = tick()
+        local frameCount = 0
+        while true do
+            frameCount = frameCount + 1
+            if tick() - lastTime >= 1 then
+                FPSLabel.Text = frameCount .. " FPS"
+                frameCount = 0
+                lastTime = tick()
+                pcall(function()
+                    PingLabel.Text = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValueString():split("(")[1] .. "MS"
+                end)
+            end
+            task.wait()
+        end
+    end)
+    
+    -- [[ PLAYER AVATAR ]]
+    local AvatarImg = Instance.new("ImageLabel")
+    AvatarImg.Size = UDim2.new(0, 28, 0, 28)
+    AvatarImg.Position = UDim2.new(0, -40, 0.5, -14)
+    AvatarImg.BackgroundTransparency = 1
+    AvatarImg.Image = game:GetService("Players"):GetUserThumbnailAsync(game.Players.LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+    AvatarImg.Parent = Telemetry
+    Instance.new("UICorner", AvatarImg).CornerRadius = UDim.new(1, 0)
+    
+    -- [[ ATMOSPHERIC PARTICLES ]]
+    local ParticleCont = Instance.new("Frame")
+    ParticleCont.Size = UDim2.new(1, 0, 1, 0)
+    ParticleCont.BackgroundTransparency = 1
+    ParticleCont.ZIndex = 0
+    ParticleCont.Parent = MainFrame
+    
+    task.spawn(function()
+        for i = 1, 25 do
+            local p = Instance.new("Frame")
+            p.Size = UDim2.new(0, 1, 0, 1)
+            p.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            p.BackgroundTransparency = 0.8
+            p.BorderSizePixel = 0
+            p.Parent = ParticleCont
+            
+            local function move()
+                p.Position = UDim2.new(math.random(), 0, math.random(), 0)
+                local t = TweenService:Create(p, TweenInfo.new(math.random(10, 20), Enum.EasingStyle.Linear), {
+                    Position = UDim2.new(math.random(), 0, math.random(), 0),
+                    BackgroundTransparency = math.random(5, 9) / 10
+                })
+                t:Play()
+                t.Completed:Wait()
+                move()
+            end
+            task.spawn(move)
+        end
+    end)
+    
     -- [[ LIGHT SWEEP EFFECT ]]
     local Sweep = Instance.new("Frame")
     Sweep.Name = "Sweep"
-    Sweep.Size = UDim2.new(0.4, 0, 2, 0)
-    Sweep.Position = UDim2.new(-1.5, 0, -0.5, 0)
-    Sweep.BackgroundTransparency = 0.9
+    Sweep.Size = UDim2.new(0.4, 0, 3, 0)
+    Sweep.Position = UDim2.new(-1.5, 0, -1, 0)
+    Sweep.BackgroundTransparency = 0.92
     Sweep.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     Sweep.Rotation = 35
+    Sweep.ZIndex = 5
     Sweep.Parent = MainFrame
     
-    local SweepGradient = Instance.new("UIGradient")
-    SweepGradient.Transparency = NumberSequence.new({
+    Instance.new("UIGradient", Sweep).Transparency = NumberSequence.new({
         NumberSequenceKeypoint.new(0, 1),
         NumberSequenceKeypoint.new(0.5, 0.6),
         NumberSequenceKeypoint.new(1, 1)
     })
-    SweepGradient.Parent = Sweep
     
     task.spawn(function()
         while true do
@@ -148,7 +232,7 @@ function UI.Init()
     Sidebar.BackgroundTransparency = 0.7
     Sidebar.BorderSizePixel = 0
     Sidebar.Parent = MainFrame
-    UI.Sidebar = Sidebar
+    UI.Refs.Sidebar = Sidebar
     
     local ContentArea = Instance.new("Frame")
     ContentArea.Name = "ContentArea"
@@ -156,15 +240,7 @@ function UI.Init()
     ContentArea.Position = UDim2.new(0, UI.Config.SidebarWidth, 0, 45)
     ContentArea.BackgroundTransparency = 1
     ContentArea.Parent = MainFrame
-    UI.ContentArea = ContentArea
-    
-    local ContentArea = Instance.new("Frame")
-    ContentArea.Name = "ContentArea"
-    ContentArea.Size = UDim2.new(1, -UI.Config.SidebarWidth, 1, 0)
-    ContentArea.Position = UDim2.new(0, UI.Config.SidebarWidth, 0, 0)
-    ContentArea.BackgroundTransparency = 1
-    ContentArea.Parent = MainFrame
-    UI.ContentArea = ContentArea
+    UI.Refs.ContentArea = ContentArea
     
     -- Overlay for settings (Context Menu)
     local Overlay = Instance.new("Frame")
@@ -176,7 +252,7 @@ function UI.Init()
     Overlay.BorderSizePixel = 0
     Overlay.ZIndex = 10
     Overlay.Parent = MainFrame
-    UI.Overlay = Overlay
+    UI.Refs.Overlay = Overlay
     
     local OverlayLine = Instance.new("Frame")
     OverlayLine.Size = UDim2.new(0, 1, 1, 0)
@@ -202,7 +278,7 @@ function UI.Init()
     OverlayTitle.TextSize = 13
     OverlayTitle.TextXAlignment = Enum.TextXAlignment.Left
     OverlayTitle.Parent = OverlayHeader
-    UI.Overlay.OverlayTitle = OverlayTitle
+    UI.Refs.OverlayTitle = OverlayTitle
     
     local CloseBtn = Instance.new("TextButton")
     CloseBtn.Size = UDim2.new(0, 30, 0, 30)
@@ -215,7 +291,7 @@ function UI.Init()
     CloseBtn.Parent = OverlayHeader
     
     CloseBtn.MouseButton1Click:Connect(function()
-        TweenService:Create(Overlay, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, 0, 0, 0)}):Play()
+        TweenService:Create(UI.Refs.Overlay, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, 0, 0, 0)}):Play()
     end)
     
     -- Dragging Support
@@ -226,17 +302,13 @@ function UI.Init()
             dragStart = input.Position
             startPos = MainFrame.Position
             input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
             end)
         end
     end)
     
     UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragInput = input
-        end
+        if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
     end)
     
     game:GetService("RunService").RenderStepped:Connect(function()
@@ -244,13 +316,14 @@ function UI.Init()
             local delta = dragInput.Position - dragStart
             local newPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
             MainFrame.Position = newPos
-            GlowFrame.Position = newPos + UDim2.new(0, -20, 0, -20)
+            GlowFrame.Position = newPos + UDim2.new(0, -25, 0, -25)
         end
     end)
     
     -- Protection
     if getgenv then getgenv().Nexus_UI = MainGui end
     MainGui.Parent = CoreGui
+    UI:Toggle() -- Show by default
     
     print("[NEXUS] 💎 UI Vitreous Engine successfully loaded!")
 end
@@ -262,25 +335,19 @@ function UI:Toggle()
     local targetPos = UI.IsVisible and UDim2.new(0.5, -350, 0.5, -225) or UDim2.new(0.5, -350, 1.5, 0)
     local targetBlur = UI.IsVisible and 15 or 0
     
-    TweenService:Create(UI.MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPos}):Play()
-    TweenService:Create(UI.Overlay.Parent.GlowFrame, TweenInfo.new(0.5), {Position = targetPos + UDim2.new(0, -20, 0, -20), ImageTransparency = UI.IsVisible and 0.4 or 1}):Play()
+    TweenService:Create(UI.Refs.MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPos}):Play()
+    TweenService:Create(UI.Refs.GlowFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPos + UDim2.new(0, -25, 0, -25), ImageTransparency = UI.IsVisible and 0.3 or 1}):Play()
     TweenService:Create(GlobalBlur, TweenInfo.new(0.5), {Size = targetBlur}):Play()
     
-    if UI.IsVisible then
-        UI.MainFrame.Parent.Enabled = true
-    else
-        task.delay(0.5, function() if not UI.IsVisible then UI.MainFrame.Parent.Enabled = false end end)
-    end
+    if UI.IsVisible then UI.Refs.MainGui.Enabled = true
+    else task.delay(0.5, function() if not UI.IsVisible then UI.Refs.MainGui.Enabled = false end end) end
 end
 
 -- [[ NAVIGATION API ]]
 function UI:SwitchPage(name)
-    if UI.CurrentPage == name then return end
-    
-    for pageName, page in pairs(UI.Pages) do
-        page.Container.Visible = (pageName == name)
-    end
+    if UI.CurrentPage then UI.Pages[UI.CurrentPage].Container.Visible = false end
     UI.CurrentPage = name
+    UI.Pages[name].Container.Visible = true
 end
 
 function UI:CreatePage(name, icon)
@@ -294,7 +361,7 @@ function UI:CreatePage(name, icon)
     page.Container.BorderSizePixel = 0
     page.Container.ScrollBarThickness = 0
     page.Container.Visible = false
-    page.Container.Parent = UI.ContentArea
+    page.Container.Parent = UI.Refs.ContentArea
     
     local layout = Instance.new("UIGridLayout")
     layout.CellSize = UDim2.new(0, 172, 0, 115) -- Denser layout
@@ -313,7 +380,7 @@ function UI:CreatePage(name, icon)
     btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     btn.BackgroundTransparency = 0.5
     btn.Text = ""
-    btn.Parent = UI.Sidebar
+    btn.Parent = UI.Refs.Sidebar
     
     local btnCorner = Instance.new("UICorner")
     btnCorner.CornerRadius = UDim.new(0, 10)
@@ -344,7 +411,7 @@ function UI:CreatePage(name, icon)
     
     btn.MouseButton1Click:Connect(function()
         UI:SwitchPage(name)
-        for _, otherBtn in pairs(UI.Sidebar:GetChildren()) do
+        for _, otherBtn in pairs(UI.Refs.Sidebar:GetChildren()) do
             if otherBtn:IsA("TextButton") then
                 TweenService:Create(otherBtn.ImageLabel, TweenInfo.new(0.3), {ImageColor3 = Color3.fromRGB(120, 120, 120)}):Play()
                 TweenService:Create(otherBtn.Frame, TweenInfo.new(0.3), {Size = UDim2.new(0, 2, 0, 0), Position = UDim2.new(1, 8, 0.5, 0)}):Play()
@@ -457,7 +524,7 @@ function UI:CreatePage(name, icon)
         settingsContainer.BackgroundTransparency = 1
         settingsContainer.BorderSizePixel = 0
         settingsContainer.Visible = false
-        settingsContainer.Parent = UI.Overlay
+        settingsContainer.Parent = UI.Refs.Overlay
         
         local listLayout = Instance.new("UIListLayout")
         listLayout.Padding = UDim.new(0, 12)
@@ -465,12 +532,12 @@ function UI:CreatePage(name, icon)
         listLayout.Parent = settingsContainer
         
         t_btn.MouseButton2Click:Connect(function()
-            for _, child in pairs(UI.Overlay:GetChildren()) do
+            for _, child in pairs(UI.Refs.Overlay:GetChildren()) do
                 if child:IsA("ScrollingFrame") then child.Visible = false end
             end
             settingsContainer.Visible = true
-            UI.Overlay.OverlayTitle.Text = title:upper()
-            TweenService:Create(UI.Overlay, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(0.6, 0, 0, 0)}):Play()
+            UI.Refs.OverlayTitle.Text = title:upper()
+            TweenService:Create(UI.Refs.Overlay, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(0.6, 0, 0, 0)}):Play()
         end)
         
         local settingsAPI = {}
