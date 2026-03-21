@@ -2,6 +2,7 @@
 -- This is the main entry point for the multihack.
 -- It initializes the framework and loads core components and feature modules.
 
+task.wait(1) -- Safety delay for game loading
 _G.Nexus = {
     Version = "2.0.0",
     Modules = {},

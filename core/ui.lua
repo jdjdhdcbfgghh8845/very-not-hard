@@ -85,21 +85,20 @@ function UI.Init()
     NoiseOverlay.ZIndex = 1
     NoiseOverlay.Parent = MainFrame
     
-    -- Parallax Mouse Movement
-    UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            local mousePos = input.Position
-            local centerX, centerY = MainFrame.AbsolutePosition.X + MainFrame.AbsoluteSize.X/2, MainFrame.AbsolutePosition.Y + MainFrame.AbsoluteSize.Y/2
-            local deltaX = (mousePos.X - centerX) / 100
-            local deltaY = (mousePos.Y - centerY) / 100
-            
-            TweenService:Create(NoiseOverlay, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                Position = UDim2.new(0, deltaX, 0, deltaY)
-            }):Play()
-            TweenService:Create(GridOverlay, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                Position = UDim2.new(-0.25, deltaX * 1.5, -0.25, deltaY * 1.5)
-            }):Play()
-        end
+    -- Optimized Parallax (RenderStepped)
+    local lastMouseX, lastMouseY = 0, 0
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if not UI.IsVisible then return end
+        local mousePos = UserInputService:GetMouseLocation()
+        if mousePos.X == lastMouseX and mousePos.Y == lastMouseY then return end
+        lastMouseX, lastMouseY = mousePos.X, mousePos.Y
+        
+        local centerX, centerY = MainFrame.AbsolutePosition.X + MainFrame.AbsoluteSize.X/2, MainFrame.AbsolutePosition.Y + MainFrame.AbsoluteSize.Y/2
+        local deltaX = (mousePos.X - centerX) / 100
+        local deltaY = (mousePos.Y - centerY) / 100
+        
+        NoiseOverlay.Position = UDim2.new(0, deltaX, 0, deltaY)
+        GridOverlay.Position = UDim2.new(-0.25, deltaX * 1.5, -0.25, deltaY * 1.5)
     end)
     
     local HeaderLine = Instance.new("Frame")
@@ -224,7 +223,7 @@ function UI.Init()
     ParticleCont.Parent = MainFrame
     
     task.spawn(function()
-        for i = 1, 25 do
+        for i = 1, 20 do -- Reduced to 20 for stability
             local p = Instance.new("Frame")
             p.Size = UDim2.new(0, 1, 0, 1)
             p.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -232,17 +231,17 @@ function UI.Init()
             p.BorderSizePixel = 0
             p.Parent = ParticleCont
             
-            local function move()
-                p.Position = UDim2.new(math.random(), 0, math.random(), 0)
-                local t = TweenService:Create(p, TweenInfo.new(math.random(10, 20), Enum.EasingStyle.Linear), {
-                    Position = UDim2.new(math.random(), 0, math.random(), 0),
-                    BackgroundTransparency = math.random(5, 9) / 10
-                })
-                t:Play()
-                t.Completed:Wait()
-                move()
-            end
-            task.spawn(move)
+            task.spawn(function()
+                while true do
+                    p.Position = UDim2.new(math.random(), 0, math.random(), 0)
+                    local t = TweenService:Create(p, TweenInfo.new(math.random(10, 20), Enum.EasingStyle.Linear), {
+                        Position = UDim2.new(math.random(), 0, math.random(), 0),
+                        BackgroundTransparency = math.random(5, 9) / 10
+                    })
+                    t:Play()
+                    t.Completed:Wait()
+                end
+            end)
         end
     end)
     
@@ -597,11 +596,6 @@ function UI:CreatePage(name, icon)
         techMarker.BackgroundTransparency = 0.5
         techMarker.ZIndex = 2
         techMarker.Parent = tile
-        tile.Name = title .. "Tile"
-        tile.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-        tile.BackgroundTransparency = 0.5
-        tile.Parent = page.Container
-        
         local t_corner = Instance.new("UICorner")
         t_corner.CornerRadius = UDim.new(0, 12)
         t_corner.Parent = tile
