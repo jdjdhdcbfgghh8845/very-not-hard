@@ -1,13 +1,13 @@
 -- [[ NEXUS MODULE - COMBAT ]]
 local Module = {
     Name = "Combat",
-    Icon = "rbxassetid://10709761168"
+    Icon = "rbxassetid://6034289557"
 }
 
 function Module.Init()
     local page = _G.Nexus.Core.UI:CreatePage("Combat", Module.Icon)
     
-    local aimbot = page:AddFeatureTile("Aimbot", "rbxassetid://10709761168", false, function(state) end)
+    local aimbot = page:AddFeatureTile("Aimbot", "rbxassetid://6034289557", false, function(state) end)
     aimbot:AddToggle("Wall Check", true, function(s) end)
     aimbot:AddSlider("Smoothness", 1, 10, 5, function(v) end)
     aimbot:AddSlider("FOV", 10, 360, 90, function(v) end)

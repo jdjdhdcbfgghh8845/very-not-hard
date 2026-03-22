@@ -356,11 +356,17 @@ function UI.Init()
     Sidebar.Parent = MainFrame
     UI.Refs.Sidebar = Sidebar
     
-    local SidebarStroke = Instance.new("UIStroke")
-    SidebarStroke.Color = Color3.fromRGB(255, 255, 255)
-    SidebarStroke.Thickness = 1
-    SidebarStroke.Transparency = 0.92
-    SidebarStroke.Parent = Sidebar
+    local SidebarCorner = Instance.new("UICorner")
+    SidebarCorner.CornerRadius = UDim.new(0, 14)
+    SidebarCorner.Parent = Sidebar
+    
+    local SidebarTopBlock = Instance.new("Frame")
+    SidebarTopBlock.Size = UDim2.new(1, 0, 0, 15)
+    SidebarTopBlock.BackgroundColor3 = Sidebar.BackgroundColor3
+    SidebarTopBlock.BackgroundTransparency = Sidebar.BackgroundTransparency
+    SidebarTopBlock.BorderSizePixel = 0
+    SidebarTopBlock.ZIndex = Sidebar.ZIndex
+    SidebarTopBlock.Parent = Sidebar
     
     local HamburgerBtn = Instance.new("TextButton")
     HamburgerBtn.Name = "Hamburger"
@@ -437,8 +443,10 @@ function UI.Init()
     s_ico.Size = UDim2.new(0, 20, 0, 20)
     s_ico.Position = UDim2.new(0, 11, 0.5, -10)
     s_ico.BackgroundTransparency = 1
-    s_ico.Image = "rbxassetid://7072714652"
-    s_ico.ImageColor3 = Color3.fromRGB(180, 180, 180)
+    s_ico.Image = "rbxassetid://6031289524"
+    s_ico.ImageColor3 = Color3.fromRGB(255, 255, 255)
+    s_ico.ZIndex = 5
+    s_ico.ScaleType = Enum.ScaleType.Fit
     s_ico.Parent = SettingsBtn
     
     local s_label = Instance.new("TextLabel")
@@ -636,6 +644,8 @@ function UI:CreatePage(name, icon, hideSidebar)
         bico.BackgroundTransparency = 1
         bico.Image = icon or ""
         bico.ImageColor3 = Color3.fromRGB(180, 180, 180)
+        bico.ZIndex = 5
+        bico.ScaleType = Enum.ScaleType.Fit
         bico.Parent = btn
         
         local blbl = Instance.new("TextLabel")
@@ -700,6 +710,8 @@ function UI:CreatePage(name, icon, hideSidebar)
         tico.BackgroundTransparency = 1
         tico.Image = ficon or ""
         tico.ImageColor3 = default and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(160, 160, 160)
+        tico.ZIndex = 5
+        tico.ScaleType = Enum.ScaleType.Fit
         tico.Parent = tile
         
         local tlbl = Instance.new("TextLabel")
