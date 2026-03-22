@@ -77,6 +77,8 @@ function Combat.Init()
     aimbot:AddSlider("FOV", 10, 800, 150, function(v) Combat.FOV = v end)
     
     local silentaim = UI:AddFeatureTile("Combat", "Silent Aim", false, function(state) end)
+    
+    local test = UI:AddFeatureTile("Combat", "Test Button", false, function(state) print("Combat Test Clicked!") end)
 end
 
 Combat.Init()

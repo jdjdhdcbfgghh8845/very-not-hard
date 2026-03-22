@@ -93,6 +93,8 @@ function Visuals.Init()
     esp:AddToggle("Names", true, function(s) Visuals.ShowNames = s end)
     esp:AddToggle("Team Check", true, function(s) Visuals.TeamCheck = s end)
     esp:AddSlider("Max Dist", 100, 5000, 1000, function(v) Visuals.MaxDist = v end)
+    
+    local test = UI:AddFeatureTile("Visuals", "Test Button", false, function(state) print("Visuals Test Clicked!") end)
 end
 
 Visuals.Init()

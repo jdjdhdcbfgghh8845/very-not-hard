@@ -193,6 +193,25 @@ function UI:Init()
     UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
     end)
+    
+    -- Toggle UI (RightShift)
+    UserInputService.InputBegan:Connect(function(input, gpe)
+        if not gpe and input.KeyCode == Enum.KeyCode.RightShift then
+            UI:Toggle()
+        end
+    end)
+end
+
+function UI:Toggle()
+    UI.IsVisible = not UI.IsVisible
+    if UI.IsVisible then
+        UI.Refs.MainFrame.Visible = true
+        createTween(UI.Refs.MainFrame, {Position = UDim2.new(0.5, -300, 0.5, -200)})
+    else
+        local t = createTween(UI.Refs.MainFrame, {Position = UDim2.new(0.5, -300, 1.5, 0)})
+        t.Completed:Wait()
+        if not UI.IsVisible then UI.Refs.MainFrame.Visible = false end
+    end
 end
 
 function UI:CreatePage(name)

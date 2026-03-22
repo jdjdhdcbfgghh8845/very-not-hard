@@ -37,6 +37,8 @@ function Movement.Init()
     local infjump = UI:AddFeatureTile("Movement", "Inf Jump", false, function(state)
         Movement.InfJumpActive = state
     end)
+    
+    local test = UI:AddFeatureTile("Movement", "Test Button", false, function(state) print("Movement Test Clicked!") end)
 end
 
 Movement.Init()
