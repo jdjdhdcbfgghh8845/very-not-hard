@@ -6,17 +6,30 @@ _G.AAC = {
     Modules = {},
     Core = {},
     Settings = {},
+    BaseURL = "https://raw.githubusercontent.com/jdjdhdcbfgghh8845/very-not-hard/main/",
     LocalPath = "c:/Users/JDH/Desktop/AC/AAC/" 
 }
 
+-- Choose mode (true = local files on PC, false = GitHub)
+local USE_LOCAL = false
+
 -- Loader function
 local function loadScript(path)
-    local fullPath = _G.AAC.LocalPath .. path
-    print("[AAC] Loading: " .. fullPath)
+    local content
+    local success
     
-    local success, content = pcall(function() return readfile(fullPath) end)
+    if USE_LOCAL then
+        local fullPath = _G.AAC.LocalPath .. path
+        print("[AAC] Loading LOCAL: " .. fullPath)
+        success, content = pcall(function() return readfile(fullPath) end)
+    else
+        local url = _G.AAC.BaseURL .. path
+        print("[AAC] Loading REMOTE: " .. url)
+        success, content = pcall(function() return game:HttpGet(url) end)
+    end
+    
     if not success or not content or content == "" then
-        warn("[AAC] ❌ Failed to read: " .. path)
+        warn("[AAC] ❌ Failed to load: " .. path)
         return nil
     end
     
