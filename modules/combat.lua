@@ -83,6 +83,3 @@ end
 
 Combat.Init()
 return Combat
-
-Combat.Init()
-return Combat

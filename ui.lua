@@ -250,7 +250,7 @@ function UI:CreatePage(name)
     SelInd.Size = UDim2.new(0, 4, 1, 0)
     SelInd.BackgroundColor3 = UI.Config.AccentColor
     SelInd.BorderSizePixel = 0
-    SelInd.Opacity = 0
+    SelInd.BackgroundTransparency = 1
     SelInd.Visible = false
     SelInd.Parent = Btn
     
