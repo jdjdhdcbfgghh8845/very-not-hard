@@ -4,6 +4,7 @@ local Combat = {
     AimbotEnabled = false,
     TriggerBotEnabled = false,
     FOV = 200,
+    ShowFOV = false,
     WallCheck = true,
     TeamCheck = true,
     Prediction = true,
@@ -20,6 +21,20 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local mouse = LocalPlayer:GetMouse()
+
+-- [[ MOUSE FALLBACKS ]]
+local mousemoverel = mousemoverel or (Input and Input.MouseMoveRel) or function(x, y)
+    -- Fallback for basic executors if needed
+end
+
+-- [[ DRAWING API (FOV CIRCLE) ]]
+local fovCircle = Drawing.new("Circle")
+fovCircle.Thickness = 1
+fovCircle.NumSides = 60
+fovCircle.Filled = false
+fovCircle.Transparency = 1
+fovCircle.Visible = false
 
 -- [[ ANTI-CHEAT BYPASS (STEALTH) ]]
 if hookmetamethod and checkcaller then
@@ -49,7 +64,6 @@ end
 
 -- [[ CORE LOGIC ]]
 local currentTarget = nil
-local posHistory = {}
 
 local function getClosestPlayer()
     local target = nil
@@ -75,6 +89,14 @@ local function getClosestPlayer()
 end
 
 RunService.RenderStepped:Connect(function()
+    -- FOV Circle
+    fovCircle.Visible = Combat.ShowFOV
+    if Combat.ShowFOV then
+        fovCircle.Position = UserInputService:GetMouseLocation()
+        fovCircle.Radius = Combat.FOV
+        fovCircle.Color = UI.Config.AccentColor
+    end
+
     -- Hitbox Expansion
     if Combat.HitboxEnabled then
         for _, p in pairs(Players:GetPlayers()) do
@@ -106,16 +128,19 @@ RunService.RenderStepped:Connect(function()
             if Combat.Prediction then
                 local vel = part.Velocity
                 local d = (Camera.CFrame.Position - pos).Magnitude
-                pos = pos + (vel * (d / 1000) * Combat.PredictionMult * 10)
+                -- Refined Frame-independent prediction
+                local travelTime = d / 1500 -- Base velocity assumption for projectiles/hitscan ray
+                pos = pos + (vel * travelTime * Combat.PredictionMult * 15)
             end
             
-            local sPos = Camera:WorldToViewportPoint(pos)
-            mousemoverel((sPos.X - UserInputService:GetMouseLocation().X) / 2, (sPos.Y - UserInputService:GetMouseLocation().Y) / 2)
+            local sPos, visible = Camera:WorldToViewportPoint(pos)
+            if visible then
+                local mPos = UserInputService:GetMouseLocation()
+                mousemoverel((sPos.X - mPos.X) / 2, (sPos.Y - mPos.Y) / 2)
+            end
             
             if Combat.AutoShoot and isVisible(part) then
-                mouse1press()
-                task.wait(0.01)
-                mouse1release()
+                if mouse1click then mouse1click() else mouse1press() task.wait() mouse1release() end
             end
         end
     else
@@ -128,10 +153,11 @@ task.spawn(function()
     while task.wait(0.01) do
         if Combat.TriggerBotEnabled then
             local target = mouse.Target
-            if target and target.Parent and target.Parent:FindFirstChild("Humanoid") then
-                local player = Players:GetPlayerFromCharacter(target.Parent)
+            if target and target.Parent and (target.Parent:FindFirstChild("Humanoid") or target.Parent.Parent:FindFirstChild("Humanoid")) then
+                local character = target.Parent:FindFirstChild("Humanoid") and target.Parent or target.Parent.Parent
+                local player = Players:GetPlayerFromCharacter(character)
                 if player and player ~= LocalPlayer and not isTeammate(player) then
-                    mouse1click()
+                    if mouse1click then mouse1click() else mouse1press() task.wait() mouse1release() end
                 end
             end
         end
@@ -143,14 +169,16 @@ function Combat.Init()
     local page = UI:CreatePage("Combat")
     
     local aim = UI:AddFeatureTile("Combat", "Aimbot", false, function(s) Combat.AimbotEnabled = s end)
-    aim:AddToggle("Sticky", true, function(s) Combat.StickyAim = s end)
+    aim:AddToggle("Sticky Target", true, function(s) Combat.StickyAim = s end)
+    aim:AddToggle("Show FOV Circle", false, function(s) Combat.ShowFOV = s end)
     aim:AddToggle("Prediction", true, function(s) Combat.Prediction = s end)
     aim:AddToggle("Auto Shoot", false, function(s) Combat.AutoShoot = s end)
-    aim:AddSlider("FOV", 50, 800, 200, function(v) Combat.FOV = v end)
+    aim:AddSlider("FOV Radius", 50, 800, 200, function(v) Combat.FOV = v end)
+    aim:AddSlider("Pred Mult", 1, 20, 10, function(v) Combat.PredictionMult = v / 10 end)
     aim:AddKeybind("Shortcut")
     
     local hitbox = UI:AddFeatureTile("Combat", "Hitbox", false, function(s) Combat.HitboxEnabled = s end)
-    hitbox:AddSlider("Size", 1, 15, 2, function(v) Combat.HitboxSize = v end)
+    hitbox:AddSlider("Head Scale", 1, 15, 2, function(v) Combat.HitboxSize = v end)
     hitbox:AddToggle("Team Check", true, function(s) Combat.TeamCheck = s end)
     hitbox:AddKeybind("Shortcut")
 

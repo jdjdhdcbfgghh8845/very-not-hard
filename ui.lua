@@ -24,6 +24,7 @@ UI.Pages = {}
 UI.Keybinds = {} -- { [FeatureName] = Enum.KeyCode }
 UI.CurrentPage = nil
 UI.IsVisible = true
+UI.Connections = {}
 
 -- Shared Registry for Keybinds/Config
 _G.AAC.ConfigRegistry = _G.AAC.ConfigRegistry or {}
@@ -38,34 +39,40 @@ end
 
 -- [[ UI NOTIFICATION SYSTEM ]]
 function UI:Notify(text, duration)
-    duration = duration or 3
-    local s = Instance.new("ScreenGui", CoreGui)
-    s.Name = "AAC_Notify"
-    
-    local f = Instance.new("Frame", s)
-    f.Size = UDim2.new(0, 260, 0, 60)
-    f.Position = UDim2.new(0.5, -130, 0, -100)
-    f.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    f.BorderSizePixel = 0
-    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 4)
-    local st = Instance.new("UIStroke", f)
-    st.Color = UI.Config.AccentColor
-    st.Thickness = 1.5
-    
-    local l = Instance.new("TextLabel", f)
-    l.Size = UDim2.new(1, -20, 1, 0)
-    l.Position = UDim2.new(0, 10, 0, 0)
-    l.BackgroundTransparency = 1
-    l.Text = text:upper()
-    l.TextColor3 = Color3.new(1, 1, 1)
-    l.Font = UI.Config.Font
-    l.TextSize = 11
-    
-    createTween(f, {Position = UDim2.new(0.5, -130, 0, 40)})
-    task.delay(duration, function()
-        createTween(f, {Position = UDim2.new(0.5, -130, 0, -100)})
-        task.wait(0.5)
-        s:Destroy()
+    pcall(function()
+        duration = duration or 3
+        local s = Instance.new("ScreenGui", CoreGui)
+        s.Name = "AAC_Notify"
+        
+        local f = Instance.new("Frame", s)
+        f.Size = UDim2.new(0, 260, 0, 60)
+        f.Position = UDim2.new(0.5, -130, 0, -100)
+        f.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        f.BorderSizePixel = 0
+        Instance.new("UICorner", f).CornerRadius = UDim.new(0, 4)
+        local st = Instance.new("UIStroke", f)
+        st.Color = UI.Config.AccentColor
+        st.Thickness = 1.5
+        
+        local l = Instance.new("TextLabel", f)
+        l.Size = UDim2.new(1, -20, 1, 0)
+        l.Position = UDim2.new(0, 10, 0, 0)
+        l.BackgroundTransparency = 1
+        l.Text = text:upper()
+        l.TextColor3 = Color3.new(1, 1, 1)
+        l.Font = UI.Config.Font
+        l.TextSize = 11
+        
+        createTween(f, {Position = UDim2.new(0.5, -130, 0, 40)})
+        task.delay(duration, function()
+            pcall(function()
+                if f and f.Parent then
+                    createTween(f, {Position = UDim2.new(0.5, -130, 0, -100)})
+                    task.wait(0.5)
+                    s:Destroy()
+                end
+            end)
+        end)
     end)
 end
 
@@ -73,13 +80,15 @@ end
 function UI:UpdateAccentColor(newColor)
     UI.Config.AccentColor = newColor
     if UI.Refs.TopLine then UI.Refs.TopLine.BackgroundColor3 = newColor end
-    for _, obj in pairs(UI.Refs.MainGui:GetDescendants()) do
-        if obj:IsA("UIStroke") and obj.Color ~= Color3.fromRGB(40, 40, 40) then
-            obj.Color = newColor
-        elseif (obj:IsA("Frame") or obj:IsA("TextButton")) and obj.Name == "Indicator" then
-            obj.BackgroundColor3 = newColor
+    pcall(function()
+        for _, obj in pairs(UI.Refs.MainGui:GetDescendants()) do
+            if obj:IsA("UIStroke") and obj.Color ~= Color3.fromRGB(40, 40, 40) then
+                obj.Color = newColor
+            elseif (obj:IsA("Frame") or obj:IsA("TextButton")) and obj.Name == "Indicator" then
+                obj.BackgroundColor3 = newColor
+            end
         end
-    end
+    end)
 end
 
 -- [[ KEYBIND PROMPT ]]
@@ -95,6 +104,15 @@ function UI:PromptKeybind(feature, buttonLabel)
             UI:Notify("BOUND: " .. feature .. " TO " .. input.KeyCode.Name)
         end
     end)
+end
+
+-- [[ CLEANUP ]]
+function UI:Cleanup()
+    for _, conn in pairs(UI.Connections) do conn:Disconnect() end
+    if UI.Refs.MainGui then UI.Refs.MainGui:Destroy() end
+    for _, obj in pairs(game:GetService("CoreGui"):GetChildren()) do
+        if obj.Name == "AAC_Notify" then obj:Destroy() end
+    end
 end
 
 -- [[ UI INITIALIZATION ]]
@@ -171,21 +189,18 @@ function UI:Init()
     UI.Refs.SettingsCont = SettingsCont
 
     -- Keybind Listener
-    UserInputService.InputBegan:Connect(function(input, gpe)
+    table.insert(UI.Connections, UserInputService.InputBegan:Connect(function(input, gpe)
         if gpe then return end
         if input.KeyCode == Enum.KeyCode.RightShift then UI:Toggle() end
         for feature, key in pairs(UI.Keybinds) do
             if input.KeyCode == key then
                 local reg = _G.AAC.ConfigRegistry
-                if reg[feature] then
-                    local s = not (reg[feature.."_State"] or false)
-                    reg[feature.."_State"] = s
-                    reg[feature](s)
-                    UI:Notify(feature .. ": " .. (s and "ON" or "OFF"))
+                if reg[feature] and reg[feature].Toggle then
+                    reg[feature]:Toggle()
                 end
             end
         end
-    end)
+    end))
     
     -- Dragging
     local dragging, dragStart, startPos
@@ -196,15 +211,15 @@ function UI:Init()
             startPos = MainFrame.Position
         end
     end)
-    UserInputService.InputChanged:Connect(function(input)
+    table.insert(UI.Connections, UserInputService.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStart
             MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
-    end)
-    UserInputService.InputEnded:Connect(function(input)
+    end))
+    table.insert(UI.Connections, UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
-    end)
+    end))
 end
 
 function UI:Toggle()
@@ -230,7 +245,7 @@ function UI:CreatePage(name)
     
     local btn = Instance.new("TextButton", UI.Refs.Sidebar)
     btn.Size = UDim2.new(1, 0, 0, 40)
-    btn.Position = UDim2.new(0, 0, 0, 70 + (#UI.Refs.Sidebar:GetChildren() - 2) * 45)
+    btn.Position = UDim2.new(0, 0, 0, 50 + (#UI.Refs.Sidebar:GetChildren() - 2) * 45)
     btn.BackgroundColor3 = Color3.fromRGB(20,20,20)
     btn.BorderSizePixel = 0
     btn.Text = name:upper()
@@ -291,15 +306,26 @@ function UI:AddFeatureTile(pageName, title, default, callback)
     status.TextSize = 8
     
     local state = default
-    local function update()
+    local function update(newState)
+        if newState ~= nil then state = newState end
         status.Text = state and "ACTIVE" or "DISABLED"
         stroke.Color = state and UI.Config.AccentColor or Color3.fromRGB(40,40,40)
-        _G.AAC.ConfigRegistry[title] = callback
-        _G.AAC.ConfigRegistry[title.."_State"] = state
         callback(state)
     end
+    
+    -- Registry object for state syncing
+    local regObj = {
+        State = state,
+        Toggle = function()
+            state = not state
+            update()
+            UI:Notify(title .. ": " .. (state and "ON" or "OFF"))
+        end
+    }
+    _G.AAC.ConfigRegistry[title] = regObj
+    
     update()
-    btn.MouseButton1Click:Connect(function() state = not state update() end)
+    btn.MouseButton1Click:Connect(function() regObj:Toggle() end)
     
     local sFrame = Instance.new("Frame", UI.Refs.SettingsCont)
     sFrame.Size = UDim2.new(1, 0, 0, 0)
@@ -375,7 +401,6 @@ function UI:AddFeatureTile(pageName, title, default, callback)
             sCallback(val)
         end
         sbg.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then update(input) end end)
-        -- Keybind button
     end
 
     function sAPI:AddKeybind(kbText)
@@ -392,6 +417,7 @@ function UI:AddFeatureTile(pageName, title, default, callback)
         l.TextXAlignment = Enum.TextXAlignment.Left
         
         local b = Instance.new("TextButton", f)
+        b.Name = "Indicator"
         b.Size = UDim2.new(0, 60, 0, 20)
         b.Position = UDim2.new(1, -65, 0.5, -10)
         b.BackgroundColor3 = Color3.fromRGB(40,40,40)

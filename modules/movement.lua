@@ -3,6 +3,7 @@ local UI = _G.AAC.Core.UI
 local Movement = {
     SpeedEnabled = false,
     SpeedMult = 2,
+    SafeSpeed = true,
     Noclip = false,
     InfJump = false,
     Flight = false,
@@ -26,7 +27,13 @@ local function updateSpeed()
     if not hum then return end
     
     if Movement.SpeedEnabled then
-        hum.WalkSpeed = 16 * Movement.SpeedMult
+        local targetSpeed = 16 * Movement.SpeedMult
+        if Movement.SafeSpeed then
+            -- Jitter/Threshold logic to avoid simple speed kicks
+            hum.WalkSpeed = math.min(targetSpeed, 50) + math.random(-1, 1)
+        else
+            hum.WalkSpeed = targetSpeed
+        end
     else
         hum.WalkSpeed = 16
     end
@@ -88,6 +95,7 @@ end
 
 RunService.RenderStepped:Connect(function()
     if Movement.Flight then updateFlight() end
+    if Movement.SpeedEnabled then updateSpeed() end
 end)
 
 -- [[ INITIALIZATION ]]
@@ -95,14 +103,18 @@ function Movement.Init()
     local page = UI:CreatePage("Movement")
     
     local speed = UI:AddFeatureTile("Movement", "Speed Hack", false, function(s) Movement.SpeedEnabled = s updateSpeed() end)
-    speed:AddSlider("Multiplier", 1, 20, 2, function(v) Movement.SpeedMult = v updateSpeed() end)
+    speed:AddToggle("Safe Mode", true, function(s) Movement.SafeSpeed = s end)
+    speed:AddSlider("Multiplier", 1, 10, 2, function(v) Movement.SpeedMult = v updateSpeed() end)
+    speed:AddKeybind("Shortcut")
     
     local flight = UI:AddFeatureTile("Movement", "Elite Flight", false, function(s) Movement.Flight = s end)
     flight:AddSlider("Flight Speed", 20, 200, 50, function(v) Movement.FlightSpeed = v end)
+    flight:AddKeybind("Shortcut")
     
     local hacks = UI:AddFeatureTile("Movement", "Utilities", false, function(s) Movement.Noclip = s Movement.InfJump = s end)
     hacks:AddToggle("Noclip", false, function(s) Movement.Noclip = s end)
     hacks:AddToggle("Infinite Jump", false, function(s) Movement.InfJump = s end)
+    hacks:AddKeybind("Shortcut")
 end
 
 Movement.Init()

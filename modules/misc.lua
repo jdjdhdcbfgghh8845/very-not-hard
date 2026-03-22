@@ -6,11 +6,14 @@ local Misc = {
         Neon = {Ambient = Color3.fromRGB(100, 0, 150), Fog = Color3.fromRGB(50, 0, 70)},
         Hell = {Ambient = Color3.fromRGB(120, 0, 0), Fog = Color3.fromRGB(60, 0, 0)},
         Ice = {Ambient = Color3.fromRGB(0, 100, 200), Fog = Color3.fromRGB(50, 100, 150)},
-        Matrix = {Ambient = Color3.fromRGB(0, 80, 0), Fog = Color3.fromRGB(0, 40, 0)}
+        Matrix = {Ambient = Color3.fromRGB(0, 80, 0), Fog = Color3.fromRGB(0, 40, 0)},
+        Vaporwave = {Ambient = Color3.fromRGB(150, 50, 150), Fog = Color3.fromRGB(200, 100, 200)},
+        Sunset = {Ambient = Color3.fromRGB(255, 100, 0), Fog = Color3.fromRGB(150, 50, 0)}
     },
     CurrentTheme = "None",
     RainbowEnabled = false,
     PulseEnabled = false,
+    FullBright = false,
     OriginalLighting = {}
 }
 
@@ -27,10 +30,12 @@ local function saveLighting()
         Ambient = Lighting.Ambient,
         OutdoorAmbient = Lighting.OutdoorAmbient,
         FogColor = Lighting.FogColor,
-        Brightness = Lighting.Brightness
+        Brightness = Lighting.Brightness,
+        ClockTime = Lighting.ClockTime,
+        ExposureCompensation = Lighting.ExposureCompensation
     }
 end
-saveLighting()
+if not Misc.OriginalLighting.Ambient then saveLighting() end
 
 local function applyTheme(name)
     local theme = Misc.Themes[name]
@@ -38,7 +43,7 @@ local function applyTheme(name)
         Lighting.Ambient = theme.Ambient
         Lighting.FogColor = theme.Fog
         Lighting.Brightness = 2
-        UI:Notify("THEME APPLIED: " .. name)
+        UI:Notify("THEME: " .. name)
     else
         Lighting.Ambient = Misc.OriginalLighting.Ambient
         Lighting.FogColor = Misc.OriginalLighting.FogColor
@@ -49,6 +54,18 @@ end
 
 RunService.RenderStepped:Connect(function()
     local t = tick()
+    
+    if Misc.FullBright then
+        Lighting.Brightness = 3
+        Lighting.ExposureCompensation = 1.5
+        Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
+        Lighting.Ambient = Color3.new(1, 1, 1)
+    elseif not Misc.RainbowEnabled and Misc.CurrentTheme == "None" then
+        Lighting.Brightness = Misc.OriginalLighting.Brightness
+        Lighting.ExposureCompensation = Misc.OriginalLighting.ExposureCompensation
+        Lighting.OutdoorAmbient = Misc.OriginalLighting.OutdoorAmbient
+    end
+
     if Misc.RainbowEnabled then
         local color = Color3.fromHSV((t * 0.2) % 1, 1, 1)
         Lighting.Ambient = color
@@ -73,16 +90,25 @@ end)
 function Misc.Init()
     local page = UI:CreatePage("Misc")
     
-    local world = UI:AddFeatureTile("Misc", "World Themes", false, function(s) if not s then applyTheme("None") end end)
+    local world = UI:AddFeatureTile("Misc", "World Themes", false, function(s) if not s then applyTheme("None") Misc.CurrentTheme = "None" end end)
+    world:AddToggle("FullBright", false, function(s) Misc.FullBright = s end)
     world:AddToggle("Rainbow Mode", false, function(s) Misc.RainbowEnabled = s end)
     world:AddToggle("Pulse Light", false, function(s) Misc.PulseEnabled = s end)
-    for name, _ in pairs(Misc.Themes) do
-        world:AddToggle(name, false, function(s) if s then applyTheme(name) end end)
-    end
     world:AddKeybind("Shortcut")
 
+    local selector = UI:AddFeatureTile("Misc", "Theme Select", false, function(s) end)
+    for name, _ in pairs(Misc.Themes) do
+        selector:AddToggle(name, false, function(s) 
+            if s then 
+                Misc.CurrentTheme = name
+                applyTheme(name) 
+            end 
+        end)
+    end
+    
     local clock = UI:AddFeatureTile("Misc", "Time Control", false, function(s) end)
-    clock:AddSlider("Time of Day", 0, 24, 12, function(v) Lighting.ClockTime = v end)
+    clock:AddSlider("Time / Hour", 0, 24, 12, function(v) Lighting.ClockTime = v end)
+    clock:AddSlider("Exposure", -5, 5, 0, function(v) Lighting.ExposureCompensation = v end)
     clock:AddKeybind("Shortcut")
 end
 
