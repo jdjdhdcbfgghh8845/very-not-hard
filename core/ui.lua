@@ -717,8 +717,8 @@ function UI:GetPageCount()
 end
     local page = {Container = Instance.new("ScrollingFrame")}
     page.Container.Name = name .. "Page"
-    page.Container.Size = UDim2.new(1, -20, 1, -20)
-    page.Container.Position = UDim2.new(0, 10, 0, 10)
+    page.Container.Size = UDim2.new(1, -20, 1, -40)
+    page.Container.Position = UDim2.new(0, 10, 0, 20)
     page.Container.BackgroundTransparency = 1
     page.Container.BorderSizePixel = 0
     page.Container.ScrollBarThickness = 0
@@ -804,8 +804,9 @@ end
         Instance.new("UICorner", tile).CornerRadius = UDim.new(0, 12)
         local tstroke = Instance.new("UIStroke")
         tstroke.Color = default and UI.Config.AccentColor or Color3.fromRGB(255, 255, 255)
-        tstroke.Thickness = 1.2
+        tstroke.Thickness = 1
         tstroke.Transparency = default and 0.4 or 0.8
+        tstroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
         tstroke.Parent = tile
         
         local tbtn = Instance.new("TextButton")
