@@ -360,13 +360,19 @@ function UI.Init()
     SidebarCorner.CornerRadius = UDim.new(0, 14)
     SidebarCorner.Parent = Sidebar
     
-    local SidebarTopBlock = Instance.new("Frame")
-    SidebarTopBlock.Size = UDim2.new(1, 0, 0, 15)
-    SidebarTopBlock.BackgroundColor3 = Sidebar.BackgroundColor3
-    SidebarTopBlock.BackgroundTransparency = Sidebar.BackgroundTransparency
-    SidebarTopBlock.BorderSizePixel = 0
-    SidebarTopBlock.ZIndex = Sidebar.ZIndex
-    SidebarTopBlock.Parent = Sidebar
+    local SidebarStroke = Instance.new("UIStroke")
+    SidebarStroke.Color = Color3.fromRGB(255, 255, 255)
+    SidebarStroke.Thickness = 1
+    SidebarStroke.Transparency = 0.95
+    SidebarStroke.Parent = Sidebar
+    
+    local SidebarClipping = Instance.new("Frame")
+    SidebarClipping.Size = UDim2.new(1, 0, 0, 15)
+    SidebarClipping.BackgroundColor3 = Sidebar.BackgroundColor3
+    SidebarClipping.BackgroundTransparency = Sidebar.BackgroundTransparency
+    SidebarClipping.BorderSizePixel = 0
+    SidebarClipping.ZIndex = Sidebar.ZIndex
+    SidebarClipping.Parent = Sidebar
     
     local HamburgerBtn = Instance.new("TextButton")
     HamburgerBtn.Name = "Hamburger"
@@ -431,23 +437,20 @@ function UI.Init()
     SettingsBtn.Text = ""
     SettingsBtn.Parent = Sidebar
     
-    Instance.new("UICorner", SettingsBtn).CornerRadius = UDim.new(0, 10)
+    Instance.new("UICorner", SettingsBtn).CornerRadius = UDim.new(1, 0)
     local s_stroke = Instance.new("UIStroke")
     s_stroke.Color = Color3.fromRGB(255, 255, 255)
     s_stroke.Thickness = 1
     s_stroke.Transparency = 0.9
     s_stroke.Parent = SettingsBtn
     
-    local s_ico = Instance.new("TextLabel")
+    local s_ico = Instance.new("Frame")
     s_ico.Name = "Icon"
-    s_ico.Size = UDim2.new(0, 24, 0, 24)
-    s_ico.Position = UDim2.new(0, 8, 0.5, -12)
+    s_ico.Size = UDim2.new(0, 18, 0, 18)
+    s_ico.Position = UDim2.new(0, 12, 0.5, -9)
     s_ico.BackgroundTransparency = 1
-    s_ico.Text = "⚙️"
-    s_ico.TextColor3 = Color3.fromRGB(180, 180, 180)
-    s_ico.Font = Enum.Font.GothamBold
-    s_ico.TextSize = 16
     s_ico.Parent = SettingsBtn
+    UI:DrawIcon("Settings", s_ico)
     
     local s_label = Instance.new("TextLabel")
     s_label.Name = "Label"
@@ -504,14 +507,18 @@ function UI.Init()
     UI.Refs.OverlayTitle = OverlayTitle
     
     local CloseBtn = Instance.new("TextButton")
-    CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-    CloseBtn.Position = UDim2.new(1, -40, 0.5, -15)
+    CloseBtn.Size = UDim2.new(0, 24, 0, 24)
+    CloseBtn.Position = UDim2.new(1, -38, 0.5, -12)
     CloseBtn.BackgroundTransparency = 1
-    CloseBtn.Text = "✕"
-    CloseBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
-    CloseBtn.Font = Enum.Font.GothamBold
-    CloseBtn.TextSize = 18
+    CloseBtn.Text = ""
     CloseBtn.Parent = OverlayHeader
+    
+    local cico = Instance.new("Frame")
+    cico.Size = UDim2.new(0, 14, 0, 14)
+    cico.Position = UDim2.new(0.5, -7, 0.5, -7)
+    cico.BackgroundTransparency = 1
+    cico.Parent = CloseBtn
+    UI:DrawIcon("Close", cico)
     
     CloseBtn.MouseButton1Click:Connect(function()
         TweenService:Create(UI.Refs.Overlay, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, 0, 0, 0)}):Play()
@@ -555,9 +562,9 @@ function UI.Init()
     GlowFrame.ImageTransparency = 0.3
     GlobalBlur.Size = 15
     
-    -- Settings Page
-    local settingsPage = UI:CreatePage("Settings", "⚙️", true)
-    local uiSettings = settingsPage:AddFeatureTile("UI Config", "🎨", true, function(state) end)
+    -- [[ GLOBAL SETTINGS PAGE ]]
+    local settingsPage = UI:CreatePage("Settings", "Settings", true)
+    local uiSettings = settingsPage:AddFeatureTile("UI Config", "Settings", true, function(state) end)
     uiSettings:AddToggle("Blur Effect", true, function(s) GlobalBlur.Enabled = s end)
     uiSettings:AddToggle("Particles", true, function(s) ParticleCont.Visible = s end)
     uiSettings:AddToggle("Parallax", true, function(s) UI.ParallaxEnabled = s end)
@@ -588,11 +595,17 @@ function UI:SwitchPage(name)
     for _, btn in pairs(UI.Refs.Sidebar:GetChildren()) do
         if btn:IsA("TextButton") and btn.Name ~= "Hamburger" then
             local isMatch = (btn.Name == name .. "Btn") or (name == "Settings" and btn.Name == "SettingsBtn")
-            local icon = btn:FindFirstChild("Icon")
+            local iconContainer = btn:FindFirstChild("Icon")
             local frame = btn:FindFirstChild("Frame")
             local stroke = btn:FindFirstChild("UIStroke")
-            if icon then 
-                TweenService:Create(icon, TweenInfo.new(0.3), {TextColor3 = isMatch and UI.Config.AccentColor or Color3.fromRGB(180, 180, 180)}):Play() 
+            if iconContainer then 
+                for _, child in pairs(iconContainer:GetChildren()) do
+                    if child:IsA("Frame") then
+                        TweenService:Create(child, TweenInfo.new(0.3), {BackgroundColor3 = isMatch and UI.Config.AccentColor or Color3.fromRGB(180, 180, 180), BackgroundTransparency = child.BackgroundTransparency}):Play()
+                    elseif child:IsA("UIStroke") then
+                        TweenService:Create(child, TweenInfo.new(0.3), {Color = isMatch and UI.Config.AccentColor or Color3.fromRGB(180, 180, 180)}):Play()
+                    end
+                end
             end
             if frame then TweenService:Create(frame, TweenInfo.new(0.3), {Size = isMatch and UDim2.new(0, 2, 0, 16) or UDim2.new(0, 2, 0, 0), Position = isMatch and UDim2.new(0, -6, 0.5, -8) or UDim2.new(0, -6, 0.5, 0)}):Play() end
             if stroke then TweenService:Create(stroke, TweenInfo.new(0.3), {Transparency = isMatch and 0.6 or 0.9}):Play() end
@@ -600,7 +613,108 @@ function UI:SwitchPage(name)
     end
 end
 
-function UI:CreatePage(name, icon, hideSidebar)
+function UI:DrawIcon(iconType, parent)
+    parent:ClearAllChildren()
+    if iconType == "Combat" or iconType == "Aimbot" then
+        local h = Instance.new("Frame", parent)
+        h.Size = UDim2.new(1, 0, 0, 2)
+        h.Position = UDim2.new(0, 0, 0.5, -1)
+        h.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
+        h.BorderSizePixel = 0
+        local v = Instance.new("Frame", parent)
+        v.Size = UDim2.new(0, 2, 1, 0)
+        v.Position = UDim2.new(0.5, -1, 0, 0)
+        v.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
+        v.BorderSizePixel = 0
+        local c = Instance.new("Frame", parent)
+        c.Size = UDim2.new(0, 4, 0, 4)
+        c.Position = UDim2.new(0.5, -2, 0.5, -2)
+        c.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+        c.BorderSizePixel = 0
+        Instance.new("UICorner", c).CornerRadius = UDim.new(1, 0)
+    elseif iconType == "Visuals" or iconType == "ESP" then
+        local out = Instance.new("Frame", parent)
+        out.Size = UDim2.new(0.8, 0, 0.5, 0)
+        out.Position = UDim2.new(0.1, 0, 0.25, 0)
+        out.BackgroundTransparency = 1
+        local s = Instance.new("UIStroke", out)
+        s.Thickness = 2
+        s.Color = Color3.fromRGB(180, 180, 180)
+        Instance.new("UICorner", out).CornerRadius = UDim.new(1, 0)
+        local dot = Instance.new("Frame", parent)
+        dot.Size = UDim2.new(0, 6, 0, 6)
+        dot.Position = UDim2.new(0.5, -3, 0.5, -3)
+        dot.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+        dot.BorderSizePixel = 0
+        Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
+    elseif iconType == "Movement" or iconType == "Speed" then
+        for i = 1, 3 do
+            local l = Instance.new("Frame", parent)
+            l.Size = UDim2.new(0.6, 0, 0, 2)
+            l.Position = UDim2.new(0.2, (i-1)*3, 0.3 + (i-1)*0.2, 0)
+            l.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
+            l.BorderSizePixel = 0
+        end
+    elseif iconType == "World" or iconType == "Rainbow" then
+        local circ = Instance.new("Frame", parent)
+        circ.Size = UDim2.new(0.8, 0, 0.8, 0)
+        circ.Position = UDim2.new(0.1, 0, 0.1, 0)
+        circ.BackgroundTransparency = 1
+        local s = Instance.new("UIStroke", circ)
+        s.Thickness = 1.5
+        s.Color = Color3.fromRGB(180, 180, 180)
+        Instance.new("UICorner", circ).CornerRadius = UDim.new(1, 0)
+        local l1 = Instance.new("Frame", circ)
+        l1.Size = UDim2.new(1, 0, 0, 1)
+        l1.Position = UDim2.new(0, 0, 0.5, 0)
+        l1.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
+        l1.BorderSizePixel = 0
+    elseif iconType == "Settings" then
+        local c1 = Instance.new("Frame", parent)
+        c1.Size = UDim2.new(0.6, 0, 0.6, 0)
+        c1.Position = UDim2.new(0.2, 0, 0.2, 0)
+        c1.BackgroundTransparency = 1
+        local s = Instance.new("UIStroke", c1)
+        s.Thickness = 3
+        s.Color = Color3.fromRGB(180, 180, 180)
+        Instance.new("UICorner", c1).CornerRadius = UDim.new(1, 0)
+        for i = 1, 8 do
+            local t = Instance.new("Frame", parent)
+            t.Size = UDim2.new(0, 4, 0, 4)
+            t.AnchorPoint = Vector2.new(0.5, 0.5)
+            t.Position = UDim2.new(0.5, math.cos(math.rad(i*45))*8, 0.5, math.sin(math.rad(i*45))*8)
+            t.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
+            t.BorderSizePixel = 0
+        end
+    elseif iconType == "Close" then
+        local l1 = Instance.new("Frame", parent)
+        l1.Size = UDim2.new(1, 0, 0, 2)
+        l1.Position = UDim2.new(0, 0, 0.5, -1)
+        l1.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
+        l1.Rotation = 45
+        l1.BorderSizePixel = 0
+        local l2 = Instance.new("Frame", parent)
+        l2.Size = UDim2.new(1, 0, 0, 2)
+        l2.Position = UDim2.new(0, 0, 0.5, -1)
+        l2.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
+        l2.Rotation = -45
+        l2.BorderSizePixel = 0
+    else
+        local q = Instance.new("TextLabel", parent)
+        q.Size = UDim2.new(1, 0, 1, 0)
+        q.BackgroundTransparency = 1
+        q.Text = "?"
+        q.TextColor3 = Color3.fromRGB(180, 180, 180)
+        q.Font = Enum.Font.GothamBold
+        q.TextSize = 14
+    end
+end
+
+function UI:GetPageCount()
+    local count = 0
+    for _ in pairs(UI.Pages) do count = count + 1 end
+    return count
+end
     local page = {Container = Instance.new("ScrollingFrame")}
     page.Container.Name = name .. "Page"
     page.Container.Size = UDim2.new(1, -20, 1, -20)
@@ -637,16 +751,13 @@ function UI:CreatePage(name, icon, hideSidebar)
         bstroke.Transparency = 0.9
         bstroke.Parent = btn
         
-        local bico = Instance.new("TextLabel")
+        local bico = Instance.new("Frame")
         bico.Name = "Icon"
-        bico.Size = UDim2.new(0, 24, 0, 24)
-        bico.Position = UDim2.new(0, 8, 0.5, -12)
+        bico.Size = UDim2.new(0, 18, 0, 18)
+        bico.Position = UDim2.new(0, 12, 0.5, -9)
         bico.BackgroundTransparency = 1
-        bico.Text = icon or "❓"
-        bico.TextColor3 = Color3.fromRGB(180, 180, 180)
-        bico.Font = Enum.Font.GothamBold
-        bico.TextSize = 16
         bico.Parent = btn
+        UI:DrawIcon(icon or "Unknown", bico)
         
         local blbl = Instance.new("TextLabel")
         blbl.Name = "Label"
@@ -703,16 +814,13 @@ function UI:CreatePage(name, icon, hideSidebar)
         tbtn.Text = ""
         tbtn.Parent = tile
         
-        local tico = Instance.new("TextLabel")
-        tico.Name = "IconLabel"
-        tico.Size = UDim2.new(0, 40, 0, 40)
-        tico.Position = UDim2.new(0.5, -20, 0.1, 0)
+        local tico = Instance.new("Frame")
+        tico.Name = "IconContainer"
+        tico.Size = UDim2.new(0, 36, 0, 36)
+        tico.Position = UDim2.new(0.5, -18, 0.1, 0)
         tico.BackgroundTransparency = 1
-        tico.Text = ficon or "❓"
-        tico.TextColor3 = default and Color3.fromRGB(240, 240, 240) or Color3.fromRGB(140, 140, 140)
-        tico.Font = Enum.Font.GothamBold
-        tico.TextSize = 28
         tico.Parent = tile
+        UI:DrawIcon(ficon or "Unknown", tico)
         
         local tlbl = Instance.new("TextLabel")
         tlbl.Size = UDim2.new(1, 0, 0, 20)
@@ -738,7 +846,13 @@ function UI:CreatePage(name, icon, hideSidebar)
         tbtn.MouseButton1Click:Connect(function()
             fstate = not fstate
             TweenService:Create(tstroke, TweenInfo.new(0.2), {Color = fstate and UI.Config.AccentColor or Color3.fromRGB(255, 255, 255), Transparency = 0.4}):Play()
-            TweenService:Create(tico, TweenInfo.new(0.2), {TextColor3 = fstate and Color3.fromRGB(240, 240, 240) or Color3.fromRGB(140, 140, 140)}):Play()
+            for _, child in pairs(tico:GetChildren()) do
+                if child:IsA("Frame") then
+                    TweenService:Create(child, TweenInfo.new(0.2), {BackgroundColor3 = fstate and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(140, 140, 140)}):Play()
+                elseif child:IsA("UIStroke") then
+                    TweenService:Create(child, TweenInfo.new(0.2), {Color = fstate and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(140, 140, 140)}):Play()
+                end
+            end
             tstat.Text = fstate and "ACTIVE" or "OFF"
             TweenService:Create(tstat, TweenInfo.new(0.2), {TextColor3 = fstate and UI.Config.AccentColor or Color3.fromRGB(100, 100, 100)}):Play()
             pcall(function() fcallback(fstate) end)
