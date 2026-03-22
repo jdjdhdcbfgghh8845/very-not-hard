@@ -715,6 +715,8 @@ function UI:GetPageCount()
     for _ in pairs(UI.Pages) do count = count + 1 end
     return count
 end
+
+function UI:CreatePage(name, icon, hideSidebar)
     local page = {Container = Instance.new("ScrollingFrame")}
     page.Container.Name = name .. "Page"
     page.Container.Size = UDim2.new(1, -20, 1, -40)
@@ -920,12 +922,6 @@ end
         return sAPI
     end
     return page
-end
-
-function UI:GetPageCount()
-    local count = 0
-    for name, _ in pairs(UI.Pages) do if name ~= "Settings" then count = count + 1 end end
-    return count
 end
 
 UserInputService.InputBegan:Connect(function(input, gpe)
