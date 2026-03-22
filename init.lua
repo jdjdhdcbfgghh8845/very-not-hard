@@ -1,35 +1,23 @@
 -- [[ AAC - ADVANCED ADAPTIVE CHEAT ]]
--- Main entry point for the Roblox multihack.
+-- Main entry point for the Roblox multihack (GitHub Version).
 
 _G.AAC = {
     Version = "1.0.0",
     Modules = {},
     Core = {},
     Settings = {},
-    BaseURL = "https://raw.githubusercontent.com/jdjdhdcbfgghh8845/very-not-hard/main/",
-    LocalPath = "c:/Users/JDH/Desktop/AC/AAC/" 
+    BaseURL = "https://raw.githubusercontent.com/jdjdhdcbfgghh8845/very-not-hard/main/"
 }
 
--- Choose mode (true = local files on PC, false = GitHub)
-local USE_LOCAL = false
-
--- Loader function
+-- Loader function (GitHub Only)
 local function loadScript(path)
-    local content
-    local success
+    local url = _G.AAC.BaseURL .. path
+    print("[AAC] Loading REMOTE: " .. url)
     
-    if USE_LOCAL then
-        local fullPath = _G.AAC.LocalPath .. path
-        print("[AAC] Loading LOCAL: " .. fullPath)
-        success, content = pcall(function() return readfile(fullPath) end)
-    else
-        local url = _G.AAC.BaseURL .. path
-        print("[AAC] Loading REMOTE: " .. url)
-        success, content = pcall(function() return game:HttpGet(url) end)
-    end
+    local success, content = pcall(function() return game:HttpGet(url) end)
     
     if not success or not content or content == "" then
-        warn("[AAC] ❌ Failed to load: " .. path)
+        warn("[AAC] ❌ Failed to load from GitHub: " .. path)
         return nil
     end
     
