@@ -614,6 +614,7 @@ function UI:SwitchPage(name)
 end
 
 function UI:DrawIcon(iconType, parent)
+    if not parent then return end
     parent:ClearAllChildren()
     if iconType == "Combat" or iconType == "Aimbot" then
         local h = Instance.new("Frame", parent)

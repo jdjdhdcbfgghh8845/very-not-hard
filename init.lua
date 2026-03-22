@@ -46,7 +46,7 @@ local function loadScript(path, isLocal)
 end
 
 -- Choose mode (true = local files on PC, false = GitHub)
-local USE_LOCAL = false 
+local USE_LOCAL = true 
 
 -- Step 1: Load Core UI Engine
 _G.Nexus.Core.UI = loadScript("core/ui.lua", USE_LOCAL)
