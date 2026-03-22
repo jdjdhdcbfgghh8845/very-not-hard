@@ -153,11 +153,23 @@ function UI.Init()
     
     local HeaderLine = Instance.new("Frame")
     HeaderLine.Size = UDim2.new(1, 0, 0, 1)
-    HeaderLine.Position = UDim2.new(0, 0, 1, 0)
+    HeaderLine.Position = UDim2.new(0, 0, 1, -1)
     HeaderLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    HeaderLine.BackgroundTransparency = 0.9
+    HeaderLine.BackgroundTransparency = 0.95
     HeaderLine.BorderSizePixel = 0
     HeaderLine.Parent = Header
+    
+    local HeaderCorner = Instance.new("UICorner")
+    HeaderCorner.CornerRadius = UDim.new(0, 14)
+    HeaderCorner.Parent = Header
+    
+    local HeaderBlock = Instance.new("Frame")
+    HeaderBlock.Size = UDim2.new(1, 0, 0, 10)
+    HeaderBlock.Position = UDim2.new(0, 0, 1, -10)
+    HeaderBlock.BackgroundColor3 = Header.BackgroundColor3
+    HeaderBlock.BackgroundTransparency = Header.BackgroundTransparency
+    HeaderBlock.BorderSizePixel = 0
+    HeaderBlock.Parent = Header
     
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Size = UDim2.new(0, 150, 1, 0)
@@ -258,11 +270,12 @@ function UI.Init()
     
     -- [[ PLAYER AVATAR ]]
     local AvatarImg = Instance.new("ImageLabel")
-    AvatarImg.Size = UDim2.new(0, 28, 0, 28)
-    AvatarImg.Position = UDim2.new(0, -40, 0.5, -14)
+    AvatarImg.Size = UDim2.new(0, 30, 0, 30)
+    AvatarImg.Position = UDim2.new(1, -250, 0.5, -15) -- Move outside telemetry text
     AvatarImg.BackgroundTransparency = 1
     AvatarImg.Image = game:GetService("Players"):GetUserThumbnailAsync(game.Players.LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
-    AvatarImg.Parent = Telemetry
+    AvatarImg.Parent = Header
+    Instance.new("UICorner", AvatarImg).CornerRadius = UDim.new(1, 0)
     Instance.new("UICorner", AvatarImg).CornerRadius = UDim.new(1, 0)
     
     -- [[ ATMOSPHERIC PARTICLES ]]
@@ -419,15 +432,13 @@ function UI.Init()
     s_stroke.Transparency = 0.9
     s_stroke.Parent = SettingsBtn
     
-    local s_ico = Instance.new("TextLabel")
+    local s_ico = Instance.new("ImageLabel")
     s_ico.Name = "Icon"
-    s_ico.Size = UDim2.new(0, 24, 0, 24)
-    s_ico.Position = UDim2.new(0, 8, 0.5, -12)
+    s_ico.Size = UDim2.new(0, 20, 0, 20)
+    s_ico.Position = UDim2.new(0, 11, 0.5, -10)
     s_ico.BackgroundTransparency = 1
-    s_ico.Text = "⚙️"
-    s_ico.TextColor3 = Color3.fromRGB(180, 180, 180)
-    s_ico.Font = Enum.Font.GothamBold
-    s_ico.TextSize = 16
+    s_ico.Image = "rbxassetid://7072714652"
+    s_ico.ImageColor3 = Color3.fromRGB(180, 180, 180)
     s_ico.Parent = SettingsBtn
     
     local s_label = Instance.new("TextLabel")
@@ -537,8 +548,8 @@ function UI.Init()
     GlobalBlur.Size = 15
     
     -- Settings Page
-    local settingsPage = UI:CreatePage("Settings", "⚙️")
-    local uiSettings = settingsPage:AddFeatureTile("UI Config", "🎨", true, function(state) end)
+    local settingsPage = UI:CreatePage("Settings", "rbxassetid://7072714652", true)
+    local uiSettings = settingsPage:AddFeatureTile("UI Config", "rbxassetid://10709771131", true, function(state) end)
     uiSettings:AddToggle("Blur Effect", true, function(s) GlobalBlur.Enabled = s end)
     uiSettings:AddToggle("Particles", true, function(s) ParticleCont.Visible = s end)
     uiSettings:AddToggle("Parallax", true, function(s) UI.ParallaxEnabled = s end)
@@ -572,14 +583,16 @@ function UI:SwitchPage(name)
             local icon = btn:FindFirstChild("Icon")
             local frame = btn:FindFirstChild("Frame")
             local stroke = btn:FindFirstChild("UIStroke")
-            if icon then TweenService:Create(icon, TweenInfo.new(0.3), {TextColor3 = isMatch and UI.Config.AccentColor or Color3.fromRGB(180, 180, 180)}):Play() end
+            if icon then 
+                TweenService:Create(icon, TweenInfo.new(0.3), {ImageColor3 = isMatch and UI.Config.AccentColor or Color3.fromRGB(180, 180, 180)}):Play() 
+            end
             if frame then TweenService:Create(frame, TweenInfo.new(0.3), {Size = isMatch and UDim2.new(0, 2, 0, 16) or UDim2.new(0, 2, 0, 0), Position = isMatch and UDim2.new(0, -6, 0.5, -8) or UDim2.new(0, -6, 0.5, 0)}):Play() end
             if stroke then TweenService:Create(stroke, TweenInfo.new(0.3), {Transparency = isMatch and 0.6 or 0.9}):Play() end
         end
     end
 end
 
-function UI:CreatePage(name, icon)
+function UI:CreatePage(name, icon, hideSidebar)
     local page = {Container = Instance.new("ScrollingFrame")}
     page.Container.Name = name .. "Page"
     page.Container.Size = UDim2.new(1, -20, 1, -20)
@@ -593,61 +606,61 @@ function UI:CreatePage(name, icon)
     local layout = Instance.new("UIGridLayout")
     layout.CellSize = UDim2.new(0, 172, 0, 115)
     layout.CellPadding = UDim2.new(0, 12, 0, 12)
-    layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Left
     layout.SortOrder = Enum.SortOrder.LayoutOrder
     layout.Parent = page.Container
     
     UI.Pages[name] = page
     
-    local btn = Instance.new("TextButton")
-    btn.Name = name .. "Btn"
-    btn.Size = UDim2.new(1, -20, 0, 38)
-    btn.Position = UDim2.new(0, 10, 0, 50 + (UI:GetPageCount() * 45))
-    btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    btn.BackgroundTransparency = 0.5
-    btn.Text = ""
-    btn.Parent = UI.Refs.Sidebar
-    
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
-    local bstroke = Instance.new("UIStroke")
-    bstroke.Color = Color3.fromRGB(255, 255, 255)
-    bstroke.Thickness = 1
-    bstroke.Transparency = 0.9
-    bstroke.Parent = btn
-    
-    local bico = Instance.new("TextLabel")
-    bico.Name = "Icon"
-    bico.Size = UDim2.new(0, 24, 0, 24)
-    bico.Position = UDim2.new(0, 8, 0.5, -12)
-    bico.BackgroundTransparency = 1
-    bico.Text = icon or "❓"
-    bico.TextColor3 = Color3.fromRGB(180, 180, 180)
-    bico.Font = Enum.Font.GothamBold
-    bico.TextSize = 16
-    bico.Parent = btn
-    
-    local blbl = Instance.new("TextLabel")
-    blbl.Name = "Label"
-    blbl.Size = UDim2.new(1, -45, 1, 0)
-    blbl.Position = UDim2.new(0, 35, 0, 0)
-    blbl.BackgroundTransparency = 1
-    blbl.Text = name:upper()
-    blbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-    blbl.Font = Enum.Font.GothamBold
-    blbl.TextSize = 11
-    blbl.TextXAlignment = Enum.TextXAlignment.Left
-    blbl.TextTransparency = 1
-    blbl.Parent = btn
-    
-    local bindic = Instance.new("Frame")
-    bindic.Name = "Frame"
-    bindic.Size = UDim2.new(0, 2, 0, 0)
-    bindic.Position = UDim2.new(0, -6, 0.5, 0)
-    bindic.BackgroundColor3 = UI.Config.AccentColor
-    bindic.BorderSizePixel = 0
-    bindic.Parent = btn
-    
-    btn.MouseButton1Click:Connect(function() UI:SwitchPage(name) end)
+    if not hideSidebar then
+        local btn = Instance.new("TextButton")
+        btn.Name = name .. "Btn"
+        btn.Size = UDim2.new(1, -20, 0, 38)
+        btn.Position = UDim2.new(0, 10, 0, 50 + (UI:GetPageCount() * 45))
+        btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        btn.BackgroundTransparency = 0.5
+        btn.Text = ""
+        btn.Parent = UI.Refs.Sidebar
+        
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
+        local bstroke = Instance.new("UIStroke")
+        bstroke.Color = Color3.fromRGB(255, 255, 255)
+        bstroke.Thickness = 1
+        bstroke.Transparency = 0.9
+        bstroke.Parent = btn
+        
+        local bico = Instance.new("ImageLabel")
+        bico.Name = "Icon"
+        bico.Size = UDim2.new(0, 20, 0, 20)
+        bico.Position = UDim2.new(0, 11, 0.5, -10)
+        bico.BackgroundTransparency = 1
+        bico.Image = icon or ""
+        bico.ImageColor3 = Color3.fromRGB(180, 180, 180)
+        bico.Parent = btn
+        
+        local blbl = Instance.new("TextLabel")
+        blbl.Name = "Label"
+        blbl.Size = UDim2.new(1, -45, 1, 0)
+        blbl.Position = UDim2.new(0, 38, 0, 0)
+        blbl.BackgroundTransparency = 1
+        blbl.Text = name:upper()
+        blbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+        blbl.Font = Enum.Font.GothamBold
+        blbl.TextSize = 11
+        blbl.TextXAlignment = Enum.TextXAlignment.Left
+        blbl.TextTransparency = 1
+        blbl.Parent = btn
+        
+        local bindic = Instance.new("Frame")
+        bindic.Name = "Frame"
+        bindic.Size = UDim2.new(0, 2, 0, 0)
+        bindic.Position = UDim2.new(0, -6, 0.5, 0)
+        bindic.BackgroundColor3 = UI.Config.AccentColor
+        bindic.BorderSizePixel = 0
+        bindic.Parent = btn
+        
+        btn.MouseButton1Click:Connect(function() UI:SwitchPage(name) end)
+    end
     
     function page:AddFeatureTile(title, ficon, default, fcallback)
         local tile = Instance.new("Frame")
@@ -680,15 +693,13 @@ function UI:CreatePage(name, icon)
         tbtn.Text = ""
         tbtn.Parent = tile
         
-        local tico = Instance.new("TextLabel")
+        local tico = Instance.new("ImageLabel")
         tico.Name = "IconLabel"
-        tico.Size = UDim2.new(0, 40, 0, 40)
-        tico.Position = UDim2.new(0.5, -20, 0.1, 0)
+        tico.Size = UDim2.new(0, 32, 0, 32)
+        tico.Position = UDim2.new(0.5, -16, 0.15, 0)
         tico.BackgroundTransparency = 1
-        tico.Text = ficon or "❓"
-        tico.TextColor3 = default and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(160, 160, 160)
-        tico.Font = Enum.Font.GothamBold
-        tico.TextSize = 28
+        tico.Image = ficon or ""
+        tico.ImageColor3 = default and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(160, 160, 160)
         tico.Parent = tile
         
         local tlbl = Instance.new("TextLabel")
@@ -715,7 +726,7 @@ function UI:CreatePage(name, icon)
         tbtn.MouseButton1Click:Connect(function()
             fstate = not fstate
             TweenService:Create(tstroke, TweenInfo.new(0.2), {Color = fstate and UI.Config.AccentColor or Color3.fromRGB(255, 255, 255), Transparency = 0.4}):Play()
-            TweenService:Create(tico, TweenInfo.new(0.2), {TextColor3 = fstate and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(160, 160, 160)}):Play()
+            TweenService:Create(tico, TweenInfo.new(0.2), {ImageColor3 = fstate and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(160, 160, 160)}):Play()
             tstat.Text = fstate and "ACTIVE" or "OFF"
             TweenService:Create(tstat, TweenInfo.new(0.2), {TextColor3 = fstate and UI.Config.AccentColor or Color3.fromRGB(100, 100, 100)}):Play()
             pcall(function() fcallback(fstate) end)
